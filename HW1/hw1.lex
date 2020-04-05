@@ -78,7 +78,6 @@ and_logop                   &&
 <STRING_SC>[\n\r]                                       exitWithError(UNCLOSED_STRING);
 <STRING_SC><<EOF>>                                      exitWithError(UNCLOSED_STRING);
 <STRING_SC>\"                                           presentToken(STRING); BEGIN(INITIAL);
-<STRING_SC>\\                                           exitWithError(ILLEGAL_CHAR);
 <STRING_SC>{printable_char}                             printCharToBuffer(yytext[0]);
 <STRING_SC>.                                            exitWithError(ILLEGAL_CHAR);
 <MULTI_LINE_COMMENT>\*\/                                presentToken(COMMENT); BEGIN(INITIAL);

@@ -376,8 +376,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 56
-#define YY_END_OF_BUFFER 57
+#define YY_NUM_RULES 55
+#define YY_END_OF_BUFFER 56
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -387,24 +387,24 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[166] =
     {   0,
-       23,   23,    0,    0,    0,    0,   57,   55,   54,   54,
-       55,   18,   48,   55,   39,   40,   38,   48,   55,   48,
-       23,   23,   52,   37,   46,   45,   46,   53,   53,   53,
-       53,   53,   53,   53,   53,   43,   44,   55,   53,   53,
-       53,   53,   53,   53,   53,   53,   53,   41,   55,   42,
-       12,   11,    8,    8,    9,   10,   17,   16,   15,   15,
-       16,   16,   46,   47,   51,   26,   19,   20,   26,   23,
-        0,    0,    0,   53,   53,   53,   53,   53,   53,   53,
-       53,   53,   53,   53,   53,   34,   53,   53,   53,   53,
-       53,   53,   53,    7,    5,    4,    1,    2,    3,    7,
+       22,   22,    0,    0,    0,    0,   56,   54,   53,   53,
+       54,   17,   47,   54,   38,   39,   37,   47,   54,   47,
+       22,   22,   51,   36,   45,   44,   45,   52,   52,   52,
+       52,   52,   52,   52,   52,   42,   43,   54,   52,   52,
+       52,   52,   52,   52,   52,   52,   52,   40,   54,   41,
+       11,   10,    8,    8,    9,   10,   16,   15,   14,   14,
+       15,   15,   45,   46,   50,   25,   18,   19,   25,   22,
+        0,    0,    0,   52,   52,   52,   52,   52,   52,   52,
+       52,   52,   52,   52,   52,   33,   52,   52,   52,   52,
+       52,   52,   52,    7,    5,    4,    1,    2,    3,    7,
 
-       15,   13,   14,    0,   20,   26,   21,   22,   24,   53,
-       53,   53,   53,   27,   53,   53,   53,   53,   53,   53,
-       29,   32,   53,   53,   28,   53,    0,   26,    0,   53,
-       53,   53,   53,   35,   53,   30,   53,   53,   49,   53,
-        0,    0,    0,    0,   26,   25,   53,   53,   53,   50,
-       53,   53,   33,    0,    6,   25,   53,   31,   36,    0,
-       53,    0,   53,    0,    0
+       14,   12,   13,    0,   19,   25,   20,   21,   23,   52,
+       52,   52,   52,   26,   52,   52,   52,   52,   52,   52,
+       28,   31,   52,   52,   27,   52,    0,   25,    0,   52,
+       52,   52,   52,   34,   52,   29,   52,   52,   48,   52,
+        0,    0,    0,    0,   25,   24,   52,   52,   52,   49,
+       52,   52,   32,    0,    6,   24,   52,   30,   35,    0,
+       52,    0,   52,    0,    0
     } ;
 
 static yyconst flex_int32_t yy_ec[256] =
@@ -597,11 +597,11 @@ static yyconst flex_int16_t yy_chk[412] =
     } ;
 
 /* Table of booleans, true if rule could match eol. */
-static yyconst flex_int32_t yy_rule_can_match_eol[57] =
+static yyconst flex_int32_t yy_rule_can_match_eol[56] =
     {   0,
-0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 
+0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,     };
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,     };
 
 static yy_state_type yy_last_accepting_state;
 static char *yy_last_accepting_cpos;
@@ -997,249 +997,244 @@ YY_RULE_SETUP
 presentToken(STRING); BEGIN(INITIAL);
 	YY_BREAK
 case 10:
+/* rule 10 can match eol */
 YY_RULE_SETUP
 #line 81 "../hw1.lex"
-exitWithError(ILLEGAL_CHAR);
+printCharToBuffer(yytext[0]);
 	YY_BREAK
 case 11:
-/* rule 11 can match eol */
 YY_RULE_SETUP
 #line 82 "../hw1.lex"
-printCharToBuffer(yytext[0]);
+exitWithError(ILLEGAL_CHAR);
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 83 "../hw1.lex"
-exitWithError(ILLEGAL_CHAR);
+presentToken(COMMENT); BEGIN(INITIAL);
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 #line 84 "../hw1.lex"
-presentToken(COMMENT); BEGIN(INITIAL);
+exitWithError(NESTED_COMMENT);
 	YY_BREAK
 case 14:
+/* rule 14 can match eol */
 YY_RULE_SETUP
 #line 85 "../hw1.lex"
-exitWithError(NESTED_COMMENT);
+currCommentNumLines++;
 	YY_BREAK
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
 #line 86 "../hw1.lex"
-currCommentNumLines++;
-	YY_BREAK
-case 16:
-/* rule 16 can match eol */
-YY_RULE_SETUP
-#line 87 "../hw1.lex"
 ;
 	YY_BREAK
-case 17:
+case 16:
 YY_RULE_SETUP
-#line 88 "../hw1.lex"
+#line 87 "../hw1.lex"
 exitWithError(ILLEGAL_CHAR);
 	YY_BREAK
 case YY_STATE_EOF(MULTI_LINE_COMMENT):
-#line 89 "../hw1.lex"
+#line 88 "../hw1.lex"
 exitWithError(UNCLOSED_COMMENT);
+	YY_BREAK
+case 17:
+YY_RULE_SETUP
+#line 89 "../hw1.lex"
+BEGIN(STRING_SC);
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 90 "../hw1.lex"
-BEGIN(STRING_SC);
+BEGIN(MULTI_LINE_COMMENT);
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 91 "../hw1.lex"
-BEGIN(MULTI_LINE_COMMENT);
+presentToken(COMMENT);
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 92 "../hw1.lex"
-presentToken(COMMENT);
+presentToken(BIN_INT);
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 93 "../hw1.lex"
-presentToken(BIN_INT);
+presentToken(OCT_INT);
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 94 "../hw1.lex"
-presentToken(OCT_INT);
+presentToken(DEC_INT);
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 95 "../hw1.lex"
-presentToken(DEC_INT);
+presentToken(HEX_INT);
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 96 "../hw1.lex"
-presentToken(HEX_INT);
+presentToken(HEX_FP);
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 97 "../hw1.lex"
-presentToken(HEX_FP);
+presentToken(DEC_REAL);
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
 #line 98 "../hw1.lex"
-presentToken(DEC_REAL);
+presentToken(TYPE);
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
 #line 99 "../hw1.lex"
-presentToken(TYPE);
+presentToken(VAR);
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
 #line 100 "../hw1.lex"
-presentToken(VAR);
+presentToken(LET);
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
 #line 101 "../hw1.lex"
-presentToken(LET);
+presentToken(FUNC);
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 102 "../hw1.lex"
-presentToken(FUNC);
+presentToken(IMPORT);
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 103 "../hw1.lex"
-presentToken(IMPORT);
+presentToken(NIL);
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 104 "../hw1.lex"
-presentToken(NIL);
+presentToken(WHILE);
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
 #line 105 "../hw1.lex"
-presentToken(WHILE);
+presentToken(IF);
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
 #line 106 "../hw1.lex"
-presentToken(IF);
+presentToken(ELSE);
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
 #line 107 "../hw1.lex"
-presentToken(ELSE);
+presentToken(RETURN);
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
 #line 108 "../hw1.lex"
-presentToken(RETURN);
+presentToken(SC);
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
 #line 109 "../hw1.lex"
-presentToken(SC);
+presentToken(COMMA);
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
 #line 110 "../hw1.lex"
-presentToken(COMMA);
+presentToken(LPAREN);
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
 #line 111 "../hw1.lex"
-presentToken(LPAREN);
+presentToken(RPAREN);
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
 #line 112 "../hw1.lex"
-presentToken(RPAREN);
+presentToken(LBRACE);
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
 #line 113 "../hw1.lex"
-presentToken(LBRACE);
+presentToken(RBRACE);
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
 #line 114 "../hw1.lex"
-presentToken(RBRACE);
+presentToken(LBRACKET);
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
 #line 115 "../hw1.lex"
-presentToken(LBRACKET);
+presentToken(RBRACKET);
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
 #line 116 "../hw1.lex"
-presentToken(RBRACKET);
+presentToken(ASSIGN);
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
 #line 117 "../hw1.lex"
-presentToken(ASSIGN);
+presentToken(RELOP);
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
 #line 118 "../hw1.lex"
-presentToken(RELOP);
+presentToken(LOGOP);
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
 #line 119 "../hw1.lex"
-presentToken(LOGOP);
+presentToken(BINOP);
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
 #line 120 "../hw1.lex"
-presentToken(BINOP);
+presentToken(TRUE);
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
 #line 121 "../hw1.lex"
-presentToken(TRUE);
+presentToken(FALSE);
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
 #line 122 "../hw1.lex"
-presentToken(FALSE);
+presentToken(ARROW);
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
 #line 123 "../hw1.lex"
-presentToken(ARROW);
+presentToken(COLON);
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
 #line 124 "../hw1.lex"
-presentToken(COLON);
-	YY_BREAK
-case 53:
-YY_RULE_SETUP
-#line 125 "../hw1.lex"
 presentToken(ID);
 	YY_BREAK
+case 53:
+/* rule 53 can match eol */
+YY_RULE_SETUP
+#line 125 "../hw1.lex"
+;
+	YY_BREAK
 case 54:
-/* rule 54 can match eol */
 YY_RULE_SETUP
 #line 126 "../hw1.lex"
-;
+exitWithError(ILLEGAL_CHAR);
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 127 "../hw1.lex"
-exitWithError(ILLEGAL_CHAR);
-	YY_BREAK
-case 56:
-YY_RULE_SETUP
-#line 129 "../hw1.lex"
+#line 128 "../hw1.lex"
 ECHO;
 	YY_BREAK
-#line 1243 "lex.yy.c"
+#line 1238 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2248,7 +2243,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 129 "../hw1.lex"
+#line 128 "../hw1.lex"
 
 
 
