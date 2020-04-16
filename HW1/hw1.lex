@@ -14,6 +14,7 @@ typedef enum _TokenType
 typedef enum _ErrorType
 {
     ILLEGAL_CHAR,
+    SECOND_IS_ILLEGAL_CHAR,
     UNCLOSED_STRING,
     UNCLOSED_COMMENT,
     UNDEFINED_ESCAPE_SEQUENCE,
@@ -57,6 +58,7 @@ whitespace		            [ \t\r\n]
 character                   [\x00-\xFF]
 printable_char              [\x20-\x7E\x09\x0A\x0D]
 printable_char_no_newline   [\x20-\x7E\x09]
+non_printable_char          [\x00-\x08\x0B\x0C\x0E-\x19\x7F-\xFF]
 escape_seq_printable_ascii  (0{0,4}([2-6]{hex_dig}|7[0-9a-eA-E]|(0?[9dDaA])))
 dec_real                    ({dec_dig}+\.{dec_dig}*|{dec_dig}*\.{dec_dig}+)
 dec_scientific_suffix       [eE][+-]{dec_dig}*
@@ -74,6 +76,7 @@ and_logop                   &&
 <STRING_SC>\\\\                                         printCharToBuffer('\\');
 <STRING_SC>\\\"                                         printCharToBuffer('\"');
 <STRING_SC>\\u\{{escape_seq_printable_ascii}\}          printHexStringToBuffer(yytext+3);
+<STRING_SC>\\{non_printable_char}                       exitWithError(SECOND_IS_ILLEGAL_CHAR);
 <STRING_SC>\\{character}                                exitWithError(UNDEFINED_ESCAPE_SEQUENCE);
 <STRING_SC>[\n\r]                                       exitWithError(UNCLOSED_STRING);
 <STRING_SC><<EOF>>                                      exitWithError(UNCLOSED_STRING);
@@ -251,6 +254,10 @@ void printError(ErrorType errorType)
     {
         case ILLEGAL_CHAR:
             printf("Error %c\n", yytext[0]);
+            break;
+        
+        case SECOND_IS_ILLEGAL_CHAR:
+            printf("Error %c\n", yytext[1]);
             break;
             
         case UNCLOSED_STRING:
