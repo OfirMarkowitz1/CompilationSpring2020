@@ -44,7 +44,7 @@ parser.add_argument('-l', '--log', action='store_true', help="Print the first di
 args = parser.parse_args()
 
 
-chk1 = subprocess.check_output(['flex', '../hw1.lex'])
+chk1 = subprocess.check_output(['flex', 'hw1.lex'])
 chk2 = subprocess.check_output(['gcc', '-ll', 'lex.yy.c'])
 if chk1 != b'' or chk2 != b'':
     print('Compilation Error!')
