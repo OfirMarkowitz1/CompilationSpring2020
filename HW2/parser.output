@@ -1,3 +1,7 @@
+State 83 conflicts: 1 shift/reduce
+State 84 conflicts: 1 shift/reduce
+
+
 Grammar
 
     0 $accept: Program $end
@@ -30,8 +34,8 @@ Grammar
    18          | Call SC
    19          | RETURN SC
    20          | RETURN Exp SC
-   21          | IF LBRACE Exp RPAREN Statement
-   22          | IF LBRACE Exp RPAREN Statement ELSE Statement
+   21          | IF LPAREN Exp RPAREN Statement
+   22          | IF LPAREN Exp RPAREN Statement ELSE Statement
    23          | WHILE LPAREN Exp RPAREN Statement
    24          | WHILE LPAREN Exp RPAREN Statement ELSE Statement
    25          | BREAK SC
@@ -78,21 +82,21 @@ IF (266) 21 22
 WHILE (267) 23 24
 BREAK (268) 25
 CONTINUE (269) 26
-SC (270) 15 16 17 18 19 20 25 26
-COMMA (271) 10 30
-LBRACE (272) 4 14 21 22
-RBRACE (273) 4 14
-ID (274) 4 11 15 16 17 27 28 36
-NUM (275) 38 39
-STRING (276) 40
-ASSIGN (277) 16 17
-BINOP (278) 35
-LPAREN (279) 4 23 24 27 28 34
-RPAREN (280) 4 21 22 23 24 27 28 34
+COMMA (270) 10 30
+ID (271) 4 11 15 16 17 27 28 36
+NUM (272) 38 39
+STRING (273) 40
+LBRACE (274) 4 14
+RBRACE (275) 4 14
+LPAREN (276) 4 21 22 23 24 27 28 34
+RPAREN (277) 4 21 22 23 24 27 28 34
+SC (278) 15 16 17 18 19 20 25 26
+ASSIGN (279) 16 17
+BINOP (280) 35
 RELOP (281) 46
-AND (282) 44
+NOT (282) 43
 OR (283) 45
-NOT (284) 43
+AND (284) 44
 ELSE (285) 22 24
 
 
@@ -328,8 +332,8 @@ state 21
     WHILE     shift, and go to state 25
     BREAK     shift, and go to state 26
     CONTINUE  shift, and go to state 27
-    LBRACE    shift, and go to state 28
-    ID        shift, and go to state 29
+    ID        shift, and go to state 28
+    LBRACE    shift, and go to state 29
 
     Statements  go to state 30
     Statement   go to state 31
@@ -351,11 +355,11 @@ state 23
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    SC      shift, and go to state 36
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
+    SC      shift, and go to state 40
     NOT     shift, and go to state 41
 
     Call  go to state 42
@@ -364,10 +368,10 @@ state 23
 
 state 24
 
-   21 Statement: IF . LBRACE Exp RPAREN Statement
-   22          | IF . LBRACE Exp RPAREN Statement ELSE Statement
+   21 Statement: IF . LPAREN Exp RPAREN Statement
+   22          | IF . LPAREN Exp RPAREN Statement ELSE Statement
 
-    LBRACE  shift, and go to state 44
+    LPAREN  shift, and go to state 44
 
 
 state 25
@@ -394,6 +398,16 @@ state 27
 
 state 28
 
+   17 Statement: ID . ASSIGN Exp SC
+   27 Call: ID . LPAREN ExpList RPAREN
+   28     | ID . LPAREN RPAREN
+
+    LPAREN  shift, and go to state 48
+    ASSIGN  shift, and go to state 49
+
+
+state 29
+
    14 Statement: LBRACE . Statements RBRACE
 
     INT       shift, and go to state 2
@@ -404,23 +418,13 @@ state 28
     WHILE     shift, and go to state 25
     BREAK     shift, and go to state 26
     CONTINUE  shift, and go to state 27
-    LBRACE    shift, and go to state 28
-    ID        shift, and go to state 29
+    ID        shift, and go to state 28
+    LBRACE    shift, and go to state 29
 
-    Statements  go to state 48
+    Statements  go to state 50
     Statement   go to state 31
     Call        go to state 32
     Type        go to state 33
-
-
-state 29
-
-   17 Statement: ID . ASSIGN Exp SC
-   27 Call: ID . LPAREN ExpList RPAREN
-   28     | ID . LPAREN RPAREN
-
-    ASSIGN  shift, and go to state 49
-    LPAREN  shift, and go to state 50
 
 
 state 30
@@ -436,9 +440,9 @@ state 30
     WHILE     shift, and go to state 25
     BREAK     shift, and go to state 26
     CONTINUE  shift, and go to state 27
-    LBRACE    shift, and go to state 28
+    ID        shift, and go to state 28
+    LBRACE    shift, and go to state 29
     RBRACE    shift, and go to state 51
-    ID        shift, and go to state 29
 
     Statement  go to state 52
     Call       go to state 32
@@ -483,23 +487,16 @@ state 35
 
 state 36
 
-   19 Statement: RETURN SC .
-
-    $default  reduce using rule 19 (Statement)
-
-
-state 37
-
    27 Call: ID . LPAREN ExpList RPAREN
    28     | ID . LPAREN RPAREN
    36 Exp: ID .
 
-    LPAREN  shift, and go to state 50
+    LPAREN  shift, and go to state 48
 
     $default  reduce using rule 36 (Exp)
 
 
-state 38
+state 37
 
    38 Exp: NUM .
    39    | NUM . B
@@ -509,27 +506,34 @@ state 38
     $default  reduce using rule 38 (Exp)
 
 
-state 39
+state 38
 
    40 Exp: STRING .
 
     $default  reduce using rule 40 (Exp)
 
 
-state 40
+state 39
 
    34 Exp: LPAREN . Exp RPAREN
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
     NOT     shift, and go to state 41
 
     Call  go to state 42
     Exp   go to state 56
+
+
+state 40
+
+   19 Statement: RETURN SC .
+
+    $default  reduce using rule 19 (Statement)
 
 
 state 41
@@ -538,10 +542,10 @@ state 41
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
     NOT     shift, and go to state 41
 
     Call  go to state 42
@@ -566,21 +570,21 @@ state 43
     SC     shift, and go to state 58
     BINOP  shift, and go to state 59
     RELOP  shift, and go to state 60
-    AND    shift, and go to state 61
-    OR     shift, and go to state 62
+    OR     shift, and go to state 61
+    AND    shift, and go to state 62
 
 
 state 44
 
-   21 Statement: IF LBRACE . Exp RPAREN Statement
-   22          | IF LBRACE . Exp RPAREN Statement ELSE Statement
+   21 Statement: IF LPAREN . Exp RPAREN Statement
+   22          | IF LPAREN . Exp RPAREN Statement ELSE Statement
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
     NOT     shift, and go to state 41
 
     Call  go to state 42
@@ -594,10 +598,10 @@ state 45
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
     NOT     shift, and go to state 41
 
     Call  go to state 42
@@ -620,6 +624,41 @@ state 47
 
 state 48
 
+   27 Call: ID LPAREN . ExpList RPAREN
+   28     | ID LPAREN . RPAREN
+
+    TRUE    shift, and go to state 34
+    FALSE   shift, and go to state 35
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
+    RPAREN  shift, and go to state 65
+    NOT     shift, and go to state 41
+
+    Call     go to state 42
+    ExpList  go to state 66
+    Exp      go to state 67
+
+
+state 49
+
+   17 Statement: ID ASSIGN . Exp SC
+
+    TRUE    shift, and go to state 34
+    FALSE   shift, and go to state 35
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
+    NOT     shift, and go to state 41
+
+    Call  go to state 42
+    Exp   go to state 68
+
+
+state 50
+
    13 Statements: Statements . Statement
    14 Statement: LBRACE Statements . RBRACE
 
@@ -631,48 +670,13 @@ state 48
     WHILE     shift, and go to state 25
     BREAK     shift, and go to state 26
     CONTINUE  shift, and go to state 27
-    LBRACE    shift, and go to state 28
-    RBRACE    shift, and go to state 65
-    ID        shift, and go to state 29
+    ID        shift, and go to state 28
+    LBRACE    shift, and go to state 29
+    RBRACE    shift, and go to state 69
 
     Statement  go to state 52
     Call       go to state 32
     Type       go to state 33
-
-
-state 49
-
-   17 Statement: ID ASSIGN . Exp SC
-
-    TRUE    shift, and go to state 34
-    FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
-    NOT     shift, and go to state 41
-
-    Call  go to state 42
-    Exp   go to state 66
-
-
-state 50
-
-   27 Call: ID LPAREN . ExpList RPAREN
-   28     | ID LPAREN . RPAREN
-
-    TRUE    shift, and go to state 34
-    FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
-    RPAREN  shift, and go to state 67
-    NOT     shift, and go to state 41
-
-    Call     go to state 42
-    ExpList  go to state 68
-    Exp      go to state 69
 
 
 state 51
@@ -720,11 +724,11 @@ state 56
    45    | Exp . OR Exp
    46    | Exp . RELOP Exp
 
-    BINOP   shift, and go to state 59
     RPAREN  shift, and go to state 72
+    BINOP   shift, and go to state 59
     RELOP   shift, and go to state 60
-    AND     shift, and go to state 61
-    OR      shift, and go to state 62
+    OR      shift, and go to state 61
+    AND     shift, and go to state 62
 
 
 state 57
@@ -734,6 +738,9 @@ state 57
    44    | Exp . AND Exp
    45    | Exp . OR Exp
    46    | Exp . RELOP Exp
+
+    OR   shift, and go to state 61
+    AND  shift, and go to state 62
 
     $default  reduce using rule 43 (Exp)
 
@@ -751,10 +758,10 @@ state 59
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
     NOT     shift, and go to state 41
 
     Call  go to state 42
@@ -767,10 +774,10 @@ state 60
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
     NOT     shift, and go to state 41
 
     Call  go to state 42
@@ -779,14 +786,14 @@ state 60
 
 state 61
 
-   44 Exp: Exp AND . Exp
+   45 Exp: Exp OR . Exp
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
     NOT     shift, and go to state 41
 
     Call  go to state 42
@@ -795,14 +802,14 @@ state 61
 
 state 62
 
-   45 Exp: Exp OR . Exp
+   44 Exp: Exp AND . Exp
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
     NOT     shift, and go to state 41
 
     Call  go to state 42
@@ -811,18 +818,18 @@ state 62
 
 state 63
 
-   21 Statement: IF LBRACE Exp . RPAREN Statement
-   22          | IF LBRACE Exp . RPAREN Statement ELSE Statement
+   21 Statement: IF LPAREN Exp . RPAREN Statement
+   22          | IF LPAREN Exp . RPAREN Statement ELSE Statement
    35 Exp: Exp . BINOP Exp
    44    | Exp . AND Exp
    45    | Exp . OR Exp
    46    | Exp . RELOP Exp
 
-    BINOP   shift, and go to state 59
     RPAREN  shift, and go to state 77
+    BINOP   shift, and go to state 59
     RELOP   shift, and go to state 60
-    AND     shift, and go to state 61
-    OR      shift, and go to state 62
+    OR      shift, and go to state 61
+    AND     shift, and go to state 62
 
 
 state 64
@@ -834,50 +841,28 @@ state 64
    45    | Exp . OR Exp
    46    | Exp . RELOP Exp
 
-    BINOP   shift, and go to state 59
     RPAREN  shift, and go to state 78
+    BINOP   shift, and go to state 59
     RELOP   shift, and go to state 60
-    AND     shift, and go to state 61
-    OR      shift, and go to state 62
+    OR      shift, and go to state 61
+    AND     shift, and go to state 62
 
 
 state 65
-
-   14 Statement: LBRACE Statements RBRACE .
-
-    $default  reduce using rule 14 (Statement)
-
-
-state 66
-
-   17 Statement: ID ASSIGN Exp . SC
-   35 Exp: Exp . BINOP Exp
-   44    | Exp . AND Exp
-   45    | Exp . OR Exp
-   46    | Exp . RELOP Exp
-
-    SC     shift, and go to state 79
-    BINOP  shift, and go to state 59
-    RELOP  shift, and go to state 60
-    AND    shift, and go to state 61
-    OR     shift, and go to state 62
-
-
-state 67
 
    28 Call: ID LPAREN RPAREN .
 
     $default  reduce using rule 28 (Call)
 
 
-state 68
+state 66
 
    27 Call: ID LPAREN ExpList . RPAREN
 
-    RPAREN  shift, and go to state 80
+    RPAREN  shift, and go to state 79
 
 
-state 69
+state 67
 
    29 ExpList: Exp .
    30        | Exp . COMMA ExpList
@@ -886,13 +871,35 @@ state 69
    45    | Exp . OR Exp
    46    | Exp . RELOP Exp
 
-    COMMA  shift, and go to state 81
+    COMMA  shift, and go to state 80
     BINOP  shift, and go to state 59
     RELOP  shift, and go to state 60
-    AND    shift, and go to state 61
-    OR     shift, and go to state 62
+    OR     shift, and go to state 61
+    AND    shift, and go to state 62
 
     $default  reduce using rule 29 (ExpList)
+
+
+state 68
+
+   17 Statement: ID ASSIGN Exp . SC
+   35 Exp: Exp . BINOP Exp
+   44    | Exp . AND Exp
+   45    | Exp . OR Exp
+   46    | Exp . RELOP Exp
+
+    SC     shift, and go to state 81
+    BINOP  shift, and go to state 59
+    RELOP  shift, and go to state 60
+    OR     shift, and go to state 61
+    AND    shift, and go to state 62
+
+
+state 69
+
+   14 Statement: LBRACE Statements RBRACE .
+
+    $default  reduce using rule 14 (Statement)
 
 
 state 70
@@ -908,10 +915,10 @@ state 71
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
     NOT     shift, and go to state 41
 
     Call  go to state 42
@@ -934,8 +941,8 @@ state 73
    46    | Exp . RELOP Exp
 
     RELOP  shift, and go to state 60
-    AND    shift, and go to state 61
-    OR     shift, and go to state 62
+    OR     shift, and go to state 61
+    AND    shift, and go to state 62
 
     $default  reduce using rule 35 (Exp)
 
@@ -948,8 +955,8 @@ state 74
    46    | Exp . RELOP Exp
    46    | Exp RELOP Exp .
 
-    AND  shift, and go to state 61
-    OR   shift, and go to state 62
+    OR   shift, and go to state 61
+    AND  shift, and go to state 62
 
     RELOP  error (nonassociative)
 
@@ -960,34 +967,28 @@ state 75
 
    35 Exp: Exp . BINOP Exp
    44    | Exp . AND Exp
-   44    | Exp AND Exp .
    45    | Exp . OR Exp
+   45    | Exp OR Exp .
    46    | Exp . RELOP Exp
 
-    OR  shift, and go to state 62
-
-    AND  error (nonassociative)
-
-    $default  reduce using rule 44 (Exp)
+    $default  reduce using rule 45 (Exp)
 
 
 state 76
 
    35 Exp: Exp . BINOP Exp
    44    | Exp . AND Exp
+   44    | Exp AND Exp .
    45    | Exp . OR Exp
-   45    | Exp OR Exp .
    46    | Exp . RELOP Exp
 
-    OR  error (nonassociative)
-
-    $default  reduce using rule 45 (Exp)
+    $default  reduce using rule 44 (Exp)
 
 
 state 77
 
-   21 Statement: IF LBRACE Exp RPAREN . Statement
-   22          | IF LBRACE Exp RPAREN . Statement ELSE Statement
+   21 Statement: IF LPAREN Exp RPAREN . Statement
+   22          | IF LPAREN Exp RPAREN . Statement ELSE Statement
 
     INT       shift, and go to state 2
     BYTE      shift, and go to state 3
@@ -997,8 +998,8 @@ state 77
     WHILE     shift, and go to state 25
     BREAK     shift, and go to state 26
     CONTINUE  shift, and go to state 27
-    LBRACE    shift, and go to state 28
-    ID        shift, and go to state 29
+    ID        shift, and go to state 28
+    LBRACE    shift, and go to state 29
 
     Statement  go to state 83
     Call       go to state 32
@@ -1018,8 +1019,8 @@ state 78
     WHILE     shift, and go to state 25
     BREAK     shift, and go to state 26
     CONTINUE  shift, and go to state 27
-    LBRACE    shift, and go to state 28
-    ID        shift, and go to state 29
+    ID        shift, and go to state 28
+    LBRACE    shift, and go to state 29
 
     Statement  go to state 84
     Call       go to state 32
@@ -1028,33 +1029,33 @@ state 78
 
 state 79
 
-   17 Statement: ID ASSIGN Exp SC .
-
-    $default  reduce using rule 17 (Statement)
-
-
-state 80
-
    27 Call: ID LPAREN ExpList RPAREN .
 
     $default  reduce using rule 27 (Call)
 
 
-state 81
+state 80
 
    30 ExpList: Exp COMMA . ExpList
 
     TRUE    shift, and go to state 34
     FALSE   shift, and go to state 35
-    ID      shift, and go to state 37
-    NUM     shift, and go to state 38
-    STRING  shift, and go to state 39
-    LPAREN  shift, and go to state 40
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    STRING  shift, and go to state 38
+    LPAREN  shift, and go to state 39
     NOT     shift, and go to state 41
 
     Call     go to state 42
     ExpList  go to state 85
-    Exp      go to state 69
+    Exp      go to state 67
+
+
+state 81
+
+   17 Statement: ID ASSIGN Exp SC .
+
+    $default  reduce using rule 17 (Statement)
 
 
 state 82
@@ -1068,17 +1069,18 @@ state 82
     SC     shift, and go to state 86
     BINOP  shift, and go to state 59
     RELOP  shift, and go to state 60
-    AND    shift, and go to state 61
-    OR     shift, and go to state 62
+    OR     shift, and go to state 61
+    AND    shift, and go to state 62
 
 
 state 83
 
-   21 Statement: IF LBRACE Exp RPAREN Statement .
-   22          | IF LBRACE Exp RPAREN Statement . ELSE Statement
+   21 Statement: IF LPAREN Exp RPAREN Statement .
+   22          | IF LPAREN Exp RPAREN Statement . ELSE Statement
 
     ELSE  shift, and go to state 87
 
+    ELSE      [reduce using rule 21 (Statement)]
     $default  reduce using rule 21 (Statement)
 
 
@@ -1089,6 +1091,7 @@ state 84
 
     ELSE  shift, and go to state 88
 
+    ELSE      [reduce using rule 23 (Statement)]
     $default  reduce using rule 23 (Statement)
 
 
@@ -1108,7 +1111,7 @@ state 86
 
 state 87
 
-   22 Statement: IF LBRACE Exp RPAREN Statement ELSE . Statement
+   22 Statement: IF LPAREN Exp RPAREN Statement ELSE . Statement
 
     INT       shift, and go to state 2
     BYTE      shift, and go to state 3
@@ -1118,8 +1121,8 @@ state 87
     WHILE     shift, and go to state 25
     BREAK     shift, and go to state 26
     CONTINUE  shift, and go to state 27
-    LBRACE    shift, and go to state 28
-    ID        shift, and go to state 29
+    ID        shift, and go to state 28
+    LBRACE    shift, and go to state 29
 
     Statement  go to state 89
     Call       go to state 32
@@ -1138,8 +1141,8 @@ state 88
     WHILE     shift, and go to state 25
     BREAK     shift, and go to state 26
     CONTINUE  shift, and go to state 27
-    LBRACE    shift, and go to state 28
-    ID        shift, and go to state 29
+    ID        shift, and go to state 28
+    LBRACE    shift, and go to state 29
 
     Statement  go to state 90
     Call       go to state 32
@@ -1148,7 +1151,7 @@ state 88
 
 state 89
 
-   22 Statement: IF LBRACE Exp RPAREN Statement ELSE Statement .
+   22 Statement: IF LPAREN Exp RPAREN Statement ELSE Statement .
 
     $default  reduce using rule 22 (Statement)
 

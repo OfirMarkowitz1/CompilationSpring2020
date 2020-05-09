@@ -133,7 +133,10 @@
 #line 1 "parser.ypp"
 
 	#include <stdlib.h>
+    #include <iostream>
 	#include "output.hpp"
+        
+    #define YYERROR_VERBOSE 1
         
 	extern int yylineno;
 	extern int yylex();
@@ -171,7 +174,7 @@ typedef int YYSTYPE;
 
 
 /* Line 216 of yacc.c.  */
-#line 175 "parser.tab.cpp"
+#line 178 "parser.tab.cpp"
 
 #ifdef short
 # undef short
@@ -459,8 +462,8 @@ static const yytype_int8 yyrhs[] =
       -1,    43,    16,    -1,    40,    -1,    39,    40,    -1,    19,
       39,    20,    -1,    43,    16,    23,    -1,    43,    16,    24,
       44,    23,    -1,    16,    24,    44,    23,    -1,    41,    23,
-      -1,    10,    23,    -1,    10,    44,    23,    -1,    11,    19,
-      44,    22,    40,    -1,    11,    19,    44,    22,    40,    30,
+      -1,    10,    23,    -1,    10,    44,    23,    -1,    11,    21,
+      44,    22,    40,    -1,    11,    21,    44,    22,    40,    30,
       40,    -1,    12,    21,    44,    22,    40,    -1,    12,    21,
       44,    22,    40,    30,    40,    -1,    13,    23,    -1,    14,
       23,    -1,    16,    21,    42,    22,    -1,    16,    21,    22,
@@ -475,11 +478,11 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    21,    21,    24,    25,    28,    31,    32,    35,    36,
-      39,    40,    43,    46,    47,    50,    51,    52,    53,    54,
-      55,    56,    57,    58,    59,    60,    61,    62,    65,    66,
-      69,    70,    73,    74,    75,    78,    79,    80,    81,    82,
-      83,    84,    85,    86,    87,    88,    89,    90
+       0,    26,    26,    29,    30,    33,    36,    37,    40,    41,
+      44,    45,    48,    51,    52,    55,    56,    57,    58,    59,
+      60,    61,    62,    63,    64,    65,    66,    67,    70,    71,
+      74,    75,    78,    79,    80,    83,    84,    85,    86,    87,
+      88,    89,    90,    91,    92,    93,    94,    95
 };
 #endif
 
@@ -561,7 +564,7 @@ static const yytype_int16 yypact[] =
 {
      176,   -30,   -30,   -30,   -30,    16,   -30,   176,     1,   -30,
      -30,   -30,     6,    58,    10,   -30,    13,    19,    20,    58,
-     -30,   120,   -30,    52,    26,    34,    23,    24,   -14,   120,
+     -30,   120,   -30,    52,    24,    26,    23,    32,   -14,   120,
       86,   -30,    41,    55,   -30,   -30,    51,    72,   -30,    68,
      -30,    68,   -30,   135,    68,    68,   -30,   -30,    -3,    68,
      103,   -30,   -30,   -30,   -12,   -30,   115,   -26,   -30,    68,
@@ -589,8 +592,8 @@ static const yytype_int8 yytable[] =
       49,    70,    71,    36,    37,    38,    10,    12,    39,    65,
       56,    52,    57,    80,    41,    63,    64,    13,    19,    32,
       68,     9,    18,    59,    60,    20,    61,    62,     9,    21,
-      73,    74,    75,    76,    17,    44,    46,    47,    83,    84,
-      17,    60,    82,    61,    62,    45,    32,    32,    89,    90,
+      73,    74,    75,    76,    17,    44,    46,    45,    83,    84,
+      17,    60,    82,    61,    62,    47,    32,    32,    89,    90,
       34,    35,     2,     3,    53,     4,    32,    32,    36,    37,
       38,    54,    48,    39,    87,    40,    34,    35,    55,    41,
       -1,    79,    61,    62,    36,    37,    38,    88,    11,    39,
@@ -612,8 +615,8 @@ static const yytype_int8 yycheck[] =
       24,    23,    24,    16,    17,    18,     0,    16,    21,    22,
       39,    50,    41,    15,    27,    44,    45,    21,    15,    50,
       49,     0,    22,    25,    26,    16,    28,    29,     7,    19,
-      59,    60,    61,    62,    13,    19,    23,    23,    77,    78,
-      19,    26,    71,    28,    29,    21,    77,    78,    87,    88,
+      59,    60,    61,    62,    13,    21,    23,    21,    77,    78,
+      19,    26,    71,    28,    29,    23,    77,    78,    87,    88,
        8,     9,     4,     5,    23,     7,    87,    88,    16,    17,
       18,    16,    21,    21,    30,    23,     8,     9,     6,    27,
       26,    22,    28,    29,    16,    17,    18,    30,     7,    21,
@@ -637,7 +640,7 @@ static const yytype_uint8 yystos[] =
        0,    33,    16,    21,    36,    37,    38,    43,    22,    15,
       16,    19,    37,    10,    11,    12,    13,    14,    16,    19,
       39,    40,    41,    43,     8,     9,    16,    17,    18,    21,
-      23,    27,    41,    44,    19,    21,    23,    23,    21,    24,
+      23,    27,    41,    44,    21,    21,    23,    23,    21,    24,
       39,    20,    40,    23,    16,     6,    44,    44,    23,    25,
       26,    28,    29,    44,    44,    22,    42,    44,    44,    20,
       23,    24,    22,    44,    44,    44,    44,    22,    22,    22,
@@ -1457,238 +1460,238 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 21 "parser.ypp"
+#line 26 "parser.ypp"
     {output::printProductionRule(1);;}
     break;
 
   case 3:
-#line 24 "parser.ypp"
+#line 29 "parser.ypp"
     {output::printProductionRule(2);;}
     break;
 
   case 4:
-#line 25 "parser.ypp"
+#line 30 "parser.ypp"
     {output::printProductionRule(3);;}
     break;
 
   case 5:
-#line 28 "parser.ypp"
+#line 33 "parser.ypp"
     {output::printProductionRule(4);;}
     break;
 
   case 6:
-#line 31 "parser.ypp"
+#line 36 "parser.ypp"
     {output::printProductionRule(5);;}
     break;
 
   case 7:
-#line 32 "parser.ypp"
+#line 37 "parser.ypp"
     {output::printProductionRule(6);;}
     break;
 
   case 8:
-#line 35 "parser.ypp"
+#line 40 "parser.ypp"
     {output::printProductionRule(7);;}
     break;
 
   case 9:
-#line 36 "parser.ypp"
+#line 41 "parser.ypp"
     {output::printProductionRule(8);;}
     break;
 
   case 10:
-#line 39 "parser.ypp"
+#line 44 "parser.ypp"
     {output::printProductionRule(9);;}
     break;
 
   case 11:
-#line 40 "parser.ypp"
+#line 45 "parser.ypp"
     {output::printProductionRule(10);;}
     break;
 
   case 12:
-#line 43 "parser.ypp"
+#line 48 "parser.ypp"
     {output::printProductionRule(11);;}
     break;
 
   case 13:
-#line 46 "parser.ypp"
+#line 51 "parser.ypp"
     {output::printProductionRule(12);;}
     break;
 
   case 14:
-#line 47 "parser.ypp"
+#line 52 "parser.ypp"
     {output::printProductionRule(13);;}
     break;
 
   case 15:
-#line 50 "parser.ypp"
+#line 55 "parser.ypp"
     {output::printProductionRule(14);;}
     break;
 
   case 16:
-#line 51 "parser.ypp"
+#line 56 "parser.ypp"
     {output::printProductionRule(15);;}
     break;
 
   case 17:
-#line 52 "parser.ypp"
+#line 57 "parser.ypp"
     {output::printProductionRule(16);;}
     break;
 
   case 18:
-#line 53 "parser.ypp"
+#line 58 "parser.ypp"
     {output::printProductionRule(17);;}
     break;
 
   case 19:
-#line 54 "parser.ypp"
+#line 59 "parser.ypp"
     {output::printProductionRule(18);;}
     break;
 
   case 20:
-#line 55 "parser.ypp"
+#line 60 "parser.ypp"
     {output::printProductionRule(19);;}
     break;
 
   case 21:
-#line 56 "parser.ypp"
+#line 61 "parser.ypp"
     {output::printProductionRule(20);;}
     break;
 
   case 22:
-#line 57 "parser.ypp"
+#line 62 "parser.ypp"
     {output::printProductionRule(21);;}
     break;
 
   case 23:
-#line 58 "parser.ypp"
+#line 63 "parser.ypp"
     {output::printProductionRule(22);;}
     break;
 
   case 24:
-#line 59 "parser.ypp"
+#line 64 "parser.ypp"
     {output::printProductionRule(23);;}
     break;
 
   case 25:
-#line 60 "parser.ypp"
+#line 65 "parser.ypp"
     {output::printProductionRule(24);;}
     break;
 
   case 26:
-#line 61 "parser.ypp"
+#line 66 "parser.ypp"
     {output::printProductionRule(25);;}
     break;
 
   case 27:
-#line 62 "parser.ypp"
+#line 67 "parser.ypp"
     {output::printProductionRule(26);;}
     break;
 
   case 28:
-#line 65 "parser.ypp"
+#line 70 "parser.ypp"
     {output::printProductionRule(27);;}
     break;
 
   case 29:
-#line 66 "parser.ypp"
+#line 71 "parser.ypp"
     {output::printProductionRule(28);;}
     break;
 
   case 30:
-#line 69 "parser.ypp"
+#line 74 "parser.ypp"
     {output::printProductionRule(29);;}
     break;
 
   case 31:
-#line 70 "parser.ypp"
+#line 75 "parser.ypp"
     {output::printProductionRule(30);;}
     break;
 
   case 32:
-#line 73 "parser.ypp"
+#line 78 "parser.ypp"
     {output::printProductionRule(31);;}
     break;
 
   case 33:
-#line 74 "parser.ypp"
+#line 79 "parser.ypp"
     {output::printProductionRule(32);;}
     break;
 
   case 34:
-#line 75 "parser.ypp"
+#line 80 "parser.ypp"
     {output::printProductionRule(33);;}
     break;
 
   case 35:
-#line 78 "parser.ypp"
+#line 83 "parser.ypp"
     {output::printProductionRule(34);;}
     break;
 
   case 36:
-#line 79 "parser.ypp"
+#line 84 "parser.ypp"
     {output::printProductionRule(35);;}
     break;
 
   case 37:
-#line 80 "parser.ypp"
+#line 85 "parser.ypp"
     {output::printProductionRule(36);;}
     break;
 
   case 38:
-#line 81 "parser.ypp"
+#line 86 "parser.ypp"
     {output::printProductionRule(37);;}
     break;
 
   case 39:
-#line 82 "parser.ypp"
+#line 87 "parser.ypp"
     {output::printProductionRule(38);;}
     break;
 
   case 40:
-#line 83 "parser.ypp"
+#line 88 "parser.ypp"
     {output::printProductionRule(39);;}
     break;
 
   case 41:
-#line 84 "parser.ypp"
+#line 89 "parser.ypp"
     {output::printProductionRule(40);;}
     break;
 
   case 42:
-#line 85 "parser.ypp"
+#line 90 "parser.ypp"
     {output::printProductionRule(41);;}
     break;
 
   case 43:
-#line 86 "parser.ypp"
+#line 91 "parser.ypp"
     {output::printProductionRule(42);;}
     break;
 
   case 44:
-#line 87 "parser.ypp"
+#line 92 "parser.ypp"
     {output::printProductionRule(43);;}
     break;
 
   case 45:
-#line 88 "parser.ypp"
+#line 93 "parser.ypp"
     {output::printProductionRule(44);;}
     break;
 
   case 46:
-#line 89 "parser.ypp"
+#line 94 "parser.ypp"
     {output::printProductionRule(45);;}
     break;
 
   case 47:
-#line 90 "parser.ypp"
+#line 95 "parser.ypp"
     {output::printProductionRule(46);;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1692 "parser.tab.cpp"
+#line 1695 "parser.tab.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1902,16 +1905,17 @@ yyreturn:
 }
 
 
-#line 92 "parser.ypp"
+#line 97 "parser.ypp"
 
 
 int main()
 {
-	yyparse();
+	return yyparse();
 }
 
 void yyerror(const char* message)
 {
+    //std::cout << "Error message: " << message << std::endl;
 	output::errorSyn(yylineno);
 }
 

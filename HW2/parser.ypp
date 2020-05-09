@@ -1,6 +1,9 @@
 %{
 	#include <stdlib.h>
+    #include <iostream>
 	#include "output.hpp"
+        
+    #define YYERROR_VERBOSE 1
         
 	extern int yylineno;
 	extern int yylex();
@@ -54,8 +57,8 @@ Statement	    :	LBRACE Statements RBRACE {output::printProductionRule(14);}
 				| 	Call SC {output::printProductionRule(18);}
 				|	RETURN SC {output::printProductionRule(19);}
 				|	RETURN Exp SC {output::printProductionRule(20);}
-				|	IF LBRACE Exp RPAREN Statement {output::printProductionRule(21);}
-				| 	IF LBRACE Exp RPAREN Statement ELSE Statement {output::printProductionRule(22);}
+				|	IF LPAREN Exp RPAREN Statement {output::printProductionRule(21);}
+				| 	IF LPAREN Exp RPAREN Statement ELSE Statement {output::printProductionRule(22);}
 				|	WHILE LPAREN Exp RPAREN Statement {output::printProductionRule(23);}
 				|	WHILE LPAREN Exp RPAREN Statement ELSE Statement {output::printProductionRule(24);}	
 				|	BREAK SC {output::printProductionRule(25);}
@@ -93,10 +96,11 @@ Exp				:	LPAREN Exp RPAREN {output::printProductionRule(34);}
 
 int main()
 {
-	yyparse();
+	return yyparse();
 }
 
 void yyerror(const char* message)
 {
+    //std::cout << "Error message: " << message << std::endl;
 	output::errorSyn(yylineno);
 }
