@@ -1,9 +1,6 @@
 %{
 	#include <stdlib.h>
-    #include <iostream>
 	#include "output.hpp"
-        
-    #define YYERROR_VERBOSE 1
         
 	extern int yylineno;
 	extern int yylex();
@@ -107,6 +104,5 @@ int main()
 
 void yyerror(const char* message)
 {
-    //std::cout << "Error message: " << message << std::endl;
 	output::errorSyn(yylineno);
 }

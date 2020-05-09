@@ -139,10 +139,7 @@
 #line 1 "parser.ypp"
 
 	#include <stdlib.h>
-    #include <iostream>
 	#include "output.hpp"
-        
-    #define YYERROR_VERBOSE 1
         
 	extern int yylineno;
 	extern int yylex();
@@ -180,7 +177,7 @@ typedef int YYSTYPE;
 
 
 /* Line 216 of yacc.c.  */
-#line 184 "parser.tab.cpp"
+#line 181 "parser.tab.cpp"
 
 #ifdef short
 # undef short
@@ -484,11 +481,11 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    28,    28,    31,    32,    35,    38,    39,    42,    43,
-      46,    47,    50,    53,    54,    57,    58,    59,    60,    61,
-      62,    63,    64,    65,    66,    67,    68,    69,    72,    73,
-      76,    77,    80,    81,    82,    85,    86,    87,    88,    89,
-      90,    91,    92,    93,    94,    95,    96,    97,    98,    99
+       0,    25,    25,    28,    29,    32,    35,    36,    39,    40,
+      43,    44,    47,    50,    51,    54,    55,    56,    57,    58,
+      59,    60,    61,    62,    63,    64,    65,    66,    69,    70,
+      73,    74,    77,    78,    79,    82,    83,    84,    85,    86,
+      87,    88,    89,    90,    91,    92,    93,    94,    95,    96
 };
 #endif
 
@@ -1472,248 +1469,248 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 28 "parser.ypp"
+#line 25 "parser.ypp"
     {output::printProductionRule(1);;}
     break;
 
   case 3:
-#line 31 "parser.ypp"
+#line 28 "parser.ypp"
     {output::printProductionRule(2);;}
     break;
 
   case 4:
-#line 32 "parser.ypp"
+#line 29 "parser.ypp"
     {output::printProductionRule(3);;}
     break;
 
   case 5:
-#line 35 "parser.ypp"
+#line 32 "parser.ypp"
     {output::printProductionRule(4);;}
     break;
 
   case 6:
-#line 38 "parser.ypp"
+#line 35 "parser.ypp"
     {output::printProductionRule(5);;}
     break;
 
   case 7:
-#line 39 "parser.ypp"
+#line 36 "parser.ypp"
     {output::printProductionRule(6);;}
     break;
 
   case 8:
-#line 42 "parser.ypp"
+#line 39 "parser.ypp"
     {output::printProductionRule(7);;}
     break;
 
   case 9:
-#line 43 "parser.ypp"
+#line 40 "parser.ypp"
     {output::printProductionRule(8);;}
     break;
 
   case 10:
-#line 46 "parser.ypp"
+#line 43 "parser.ypp"
     {output::printProductionRule(9);;}
     break;
 
   case 11:
-#line 47 "parser.ypp"
+#line 44 "parser.ypp"
     {output::printProductionRule(10);;}
     break;
 
   case 12:
-#line 50 "parser.ypp"
+#line 47 "parser.ypp"
     {output::printProductionRule(11);;}
     break;
 
   case 13:
-#line 53 "parser.ypp"
+#line 50 "parser.ypp"
     {output::printProductionRule(12);;}
     break;
 
   case 14:
-#line 54 "parser.ypp"
+#line 51 "parser.ypp"
     {output::printProductionRule(13);;}
     break;
 
   case 15:
-#line 57 "parser.ypp"
+#line 54 "parser.ypp"
     {output::printProductionRule(14);;}
     break;
 
   case 16:
-#line 58 "parser.ypp"
+#line 55 "parser.ypp"
     {output::printProductionRule(15);;}
     break;
 
   case 17:
-#line 59 "parser.ypp"
+#line 56 "parser.ypp"
     {output::printProductionRule(16);;}
     break;
 
   case 18:
-#line 60 "parser.ypp"
+#line 57 "parser.ypp"
     {output::printProductionRule(17);;}
     break;
 
   case 19:
-#line 61 "parser.ypp"
+#line 58 "parser.ypp"
     {output::printProductionRule(18);;}
     break;
 
   case 20:
-#line 62 "parser.ypp"
+#line 59 "parser.ypp"
     {output::printProductionRule(19);;}
     break;
 
   case 21:
-#line 63 "parser.ypp"
+#line 60 "parser.ypp"
     {output::printProductionRule(20);;}
     break;
 
   case 22:
-#line 64 "parser.ypp"
+#line 61 "parser.ypp"
     {output::printProductionRule(21);;}
     break;
 
   case 23:
-#line 65 "parser.ypp"
+#line 62 "parser.ypp"
     {output::printProductionRule(22);;}
     break;
 
   case 24:
-#line 66 "parser.ypp"
+#line 63 "parser.ypp"
     {output::printProductionRule(23);;}
     break;
 
   case 25:
-#line 67 "parser.ypp"
+#line 64 "parser.ypp"
     {output::printProductionRule(24);;}
     break;
 
   case 26:
-#line 68 "parser.ypp"
+#line 65 "parser.ypp"
     {output::printProductionRule(25);;}
     break;
 
   case 27:
-#line 69 "parser.ypp"
+#line 66 "parser.ypp"
     {output::printProductionRule(26);;}
     break;
 
   case 28:
-#line 72 "parser.ypp"
+#line 69 "parser.ypp"
     {output::printProductionRule(27);;}
     break;
 
   case 29:
-#line 73 "parser.ypp"
+#line 70 "parser.ypp"
     {output::printProductionRule(28);;}
     break;
 
   case 30:
-#line 76 "parser.ypp"
+#line 73 "parser.ypp"
     {output::printProductionRule(29);;}
     break;
 
   case 31:
-#line 77 "parser.ypp"
+#line 74 "parser.ypp"
     {output::printProductionRule(30);;}
     break;
 
   case 32:
-#line 80 "parser.ypp"
+#line 77 "parser.ypp"
     {output::printProductionRule(31);;}
     break;
 
   case 33:
-#line 81 "parser.ypp"
+#line 78 "parser.ypp"
     {output::printProductionRule(32);;}
     break;
 
   case 34:
-#line 82 "parser.ypp"
+#line 79 "parser.ypp"
     {output::printProductionRule(33);;}
     break;
 
   case 35:
-#line 85 "parser.ypp"
+#line 82 "parser.ypp"
     {output::printProductionRule(34);;}
     break;
 
   case 36:
-#line 86 "parser.ypp"
+#line 83 "parser.ypp"
     {output::printProductionRule(35);;}
     break;
 
   case 37:
-#line 87 "parser.ypp"
+#line 84 "parser.ypp"
     {output::printProductionRule(35);;}
     break;
 
   case 38:
-#line 88 "parser.ypp"
+#line 85 "parser.ypp"
     {output::printProductionRule(36);;}
     break;
 
   case 39:
-#line 89 "parser.ypp"
+#line 86 "parser.ypp"
     {output::printProductionRule(37);;}
     break;
 
   case 40:
-#line 90 "parser.ypp"
+#line 87 "parser.ypp"
     {output::printProductionRule(38);;}
     break;
 
   case 41:
-#line 91 "parser.ypp"
+#line 88 "parser.ypp"
     {output::printProductionRule(39);;}
     break;
 
   case 42:
-#line 92 "parser.ypp"
+#line 89 "parser.ypp"
     {output::printProductionRule(40);;}
     break;
 
   case 43:
-#line 93 "parser.ypp"
+#line 90 "parser.ypp"
     {output::printProductionRule(41);;}
     break;
 
   case 44:
-#line 94 "parser.ypp"
+#line 91 "parser.ypp"
     {output::printProductionRule(42);;}
     break;
 
   case 45:
-#line 95 "parser.ypp"
+#line 92 "parser.ypp"
     {output::printProductionRule(43);;}
     break;
 
   case 46:
-#line 96 "parser.ypp"
+#line 93 "parser.ypp"
     {output::printProductionRule(44);;}
     break;
 
   case 47:
-#line 97 "parser.ypp"
+#line 94 "parser.ypp"
     {output::printProductionRule(45);;}
     break;
 
   case 48:
-#line 98 "parser.ypp"
+#line 95 "parser.ypp"
     {output::printProductionRule(46);;}
     break;
 
   case 49:
-#line 99 "parser.ypp"
+#line 96 "parser.ypp"
     {output::printProductionRule(46);;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1717 "parser.tab.cpp"
+#line 1714 "parser.tab.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1927,7 +1924,7 @@ yyreturn:
 }
 
 
-#line 101 "parser.ypp"
+#line 98 "parser.ypp"
 
 
 int main()
@@ -1937,7 +1934,6 @@ int main()
 
 void yyerror(const char* message)
 {
-    //std::cout << "Error message: " << message << std::endl;
 	output::errorSyn(yylineno);
 }
 
