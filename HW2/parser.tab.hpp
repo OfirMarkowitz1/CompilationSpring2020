@@ -60,13 +60,16 @@
      LPAREN = 276,
      RPAREN = 277,
      SC = 278,
-     ASSIGN = 279,
-     BINOP = 280,
-     RELOP = 281,
-     NOT = 282,
-     OR = 283,
-     AND = 284,
-     ELSE = 285
+     COND_WITHOUT_ELSE = 279,
+     ELSE = 280,
+     ASSIGN = 281,
+     OR = 282,
+     AND = 283,
+     EQUALITY = 284,
+     RELATIONAL = 285,
+     ADDITIVE = 286,
+     MULTIPLICATIVE = 287,
+     NOT = 288
    };
 #endif
 /* Tokens.  */
@@ -91,13 +94,16 @@
 #define LPAREN 276
 #define RPAREN 277
 #define SC 278
-#define ASSIGN 279
-#define BINOP 280
-#define RELOP 281
-#define NOT 282
-#define OR 283
-#define AND 284
-#define ELSE 285
+#define COND_WITHOUT_ELSE 279
+#define ELSE 280
+#define ASSIGN 281
+#define OR 282
+#define AND 283
+#define EQUALITY 284
+#define RELATIONAL 285
+#define ADDITIVE 286
+#define MULTIPLICATIVE 287
+#define NOT 288
 
 
 

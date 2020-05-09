@@ -10,14 +10,18 @@
 	void yyerror(const char*);
 %}
 
-%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE COMMA
-%token ID NUM STRING LBRACE RBRACE LPAREN RPAREN SC
+%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE
+%token COMMA ID NUM STRING LBRACE RBRACE LPAREN RPAREN SC
+%nonassoc COND_WITHOUT_ELSE
+%nonassoc ELSE
 %right ASSIGN
-%left BINOP
-%nonassoc RELOP
+%left OR
+%left AND
+%left EQUALITY
+%nonassoc RELATIONAL
+%left ADDITIVE
+%left MULTIPLICATIVE
 %right NOT
-%left AND OR
-%left ELSE
 
 %%
 
@@ -57,10 +61,10 @@ Statement	    :	LBRACE Statements RBRACE {output::printProductionRule(14);}
 				| 	Call SC {output::printProductionRule(18);}
 				|	RETURN SC {output::printProductionRule(19);}
 				|	RETURN Exp SC {output::printProductionRule(20);}
-				|	IF LPAREN Exp RPAREN Statement {output::printProductionRule(21);}
+				|	IF LPAREN Exp RPAREN Statement %prec COND_WITHOUT_ELSE {output::printProductionRule(21);}
 				| 	IF LPAREN Exp RPAREN Statement ELSE Statement {output::printProductionRule(22);}
-				|	WHILE LPAREN Exp RPAREN Statement {output::printProductionRule(23);}
-				|	WHILE LPAREN Exp RPAREN Statement ELSE Statement {output::printProductionRule(24);}	
+				|	WHILE LPAREN Exp RPAREN Statement %prec COND_WITHOUT_ELSE {output::printProductionRule(23);}
+				|	WHILE LPAREN Exp RPAREN Statement ELSE Statement {output::printProductionRule(24);}
 				|	BREAK SC {output::printProductionRule(25);}
 				|	CONTINUE SC {output::printProductionRule(26);}
                 ;
@@ -79,7 +83,8 @@ Type			: 	INT {output::printProductionRule(31);}
                 ;
 			
 Exp				:	LPAREN Exp RPAREN {output::printProductionRule(34);}
-				|	Exp BINOP Exp {output::printProductionRule(35);}
+				|	Exp ADDITIVE Exp {output::printProductionRule(35);}
+                |   Exp MULTIPLICATIVE Exp {output::printProductionRule(35);}
 				|	ID {output::printProductionRule(36);}
 				|	Call {output::printProductionRule(37);}
 				|	NUM {output::printProductionRule(38);}
@@ -90,7 +95,8 @@ Exp				:	LPAREN Exp RPAREN {output::printProductionRule(34);}
 				|	NOT Exp {output::printProductionRule(43);}
 				|	Exp AND Exp {output::printProductionRule(44);}
 				|	Exp OR Exp {output::printProductionRule(45);}
-				|	Exp RELOP Exp {output::printProductionRule(46);}
+				|	Exp RELATIONAL Exp {output::printProductionRule(46);}
+                |   Exp EQUALITY Exp {output::printProductionRule(46);}
                 ;
 %%
 
