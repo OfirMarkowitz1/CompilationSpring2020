@@ -1,0 +1,3 @@
+[submodule "CompilationTests"]
+	path = CompilationTests
+	url = https://github.com/schorrm/CompilationTests.git
