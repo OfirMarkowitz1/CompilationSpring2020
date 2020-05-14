@@ -1,0 +1,117 @@
+%{
+	#include <stdlib.h>
+    #include <stack>
+    #include <unordered_map>
+	#include "hw3_output.hh"
+    #include "Node.hpp"
+    
+    #define YYSTYPE Node*
+    
+	extern int yylineno;
+	extern int yylex();
+	void yyerror(const char*);
+    
+    
+    
+    std::unordered_map<>;
+%}
+
+%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE
+%token COMMA ID NUM STRING LBRACE RBRACE LPAREN RPAREN SC
+%nonassoc COND_WITHOUT_ELSE
+%nonassoc ELSE
+%right ASSIGN
+%left OR
+%left AND
+%left EQUALITY
+%nonassoc RELATIONAL
+%left ADDITIVE
+%left MULTIPLICATIVE
+%right NOT
+
+%%
+
+Program			:	 Funcs {}
+                ;
+		
+Funcs			: 	/* empty */    {}
+				|	FuncDecl Funcs {}
+                ;
+		
+FuncDecl		: 	RetType ID LPAREN Formals RPAREN LBRACE Statements RBRACE {}
+                ;
+
+RetType			:	Type {}
+				|	VOID {}
+                ;
+
+Formals			:	/* empty */ {}
+				|	FormalsList {}
+                ;
+
+FormalsList		:	FormalDecl {}
+				|	FormalDecl COMMA FormalsList {}
+                ;
+
+FormalDecl 		:	Type ID {}
+                ;
+			
+Statements		:	Statement {}
+				|	Statements Statement {}
+                ;
+      
+Statement	    :	LBRACE Statements RBRACE {}
+				|	Type ID SC {}
+				|	Type ID ASSIGN Exp SC {}
+				|	ID ASSIGN Exp SC {}
+				| 	Call SC {}
+				|	RETURN SC {}
+				|	RETURN Exp SC {}
+				|	IF LPAREN Exp RPAREN Statement %prec COND_WITHOUT_ELSE {}
+				| 	IF LPAREN Exp RPAREN Statement ELSE Statement {}
+				|	WHILE LPAREN Exp RPAREN Statement %prec COND_WITHOUT_ELSE {}
+				|	WHILE LPAREN Exp RPAREN Statement ELSE Statement {}
+				|	BREAK SC {}
+				|	CONTINUE SC {}
+                ;
+			
+Call			: 	ID LPAREN ExpList RPAREN {}
+				| 	ID LPAREN RPAREN {}
+                ;
+			
+ExpList			: 	Exp {}
+				| 	Exp COMMA ExpList {}
+                ;
+			
+Type			: 	INT {}
+				|	BYTE {}
+				|	BOOL {}
+                ;
+			
+Exp				:	LPAREN Exp RPAREN {}
+				|	Exp ADDITIVE Exp {}
+                |   Exp MULTIPLICATIVE Exp {}
+				|	ID {}
+				|	Call {}
+				|	NUM {}
+				|	NUM B {}
+				|	STRING {}
+				|	TRUE {}
+				|	FALSE {}
+				|	NOT Exp {}
+				|	Exp AND Exp {}
+				|	Exp OR Exp {}
+				|	Exp RELATIONAL Exp {}
+                |   Exp EQUALITY Exp {}
+                ;
+%%
+
+int main()
+{
+	return yyparse();
+}
+
+void yyerror(const char* message)
+{
+	output::errorSyn(yylineno);
+}
