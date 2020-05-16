@@ -48,7 +48,7 @@ IdentifierNode::~IdentifierNode()
 {
 }
 
-std::string IdentifierNode::getValue() const
+const std::string& IdentifierNode::getValue() const
 {
 	return _value;
 }

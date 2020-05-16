@@ -58,7 +58,7 @@ public:
 	IdentifierNode(int lineNumber, const std::string& value);
 	virtual ~IdentifierNode();
 
-	std::string getValue() const;
+	const std::string& getValue() const;
 
 private:
 	const std::string _value;

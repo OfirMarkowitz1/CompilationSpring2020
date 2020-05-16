@@ -13,6 +13,8 @@
     #include "ExpressionNodeFactory.hpp"
     #include "CallNodeFactory.hpp"
 
+	#include "SymbolTableEntry.h"
+
     using namespace std;
 
 	extern int yylineno;
@@ -24,7 +26,7 @@
 	ExpressionNodeFactory expressionNodeFactory;
 	CallNodeFactory callNodeFactory;
 
-    // std::unordered_map<>;
+    unordered_map<SymbolTableEntry>;
 %}
 
 %token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE COMMA ID NUM STRING LBRACE RBRACE LPAREN RPAREN SC
