@@ -1,8 +1,11 @@
 %{
 
 #include <stdlib.h>
+#include "Node.hpp"
 #include "parser.tab.hpp"
-#include "hw3_output.hh"
+#include "hw3_output.hpp"
+
+using namespace std;
 
 void exitWithError();
 
@@ -40,8 +43,8 @@ continue                                                return CONTINUE;
 \<|\>|\<=|\>=                                           return RELATIONAL;
 \+|\-                                                   return ADDITIVE;
 \*|\/                                                   return MULTIPLICATIVE;
-[a-zA-Z][a-zA-Z0-9]*                                    return ID;
-0|[1-9][0-9]*                                           return NUM;
+[a-zA-Z][a-zA-Z0-9]*                                    yylval = make_shared<IdentifierNode>(yylineno, yytext); return ID;
+0|[1-9][0-9]*                                           yylval = make_shared<NumNode>(yylineno, atoi(yytext)); return NUM;
 \"([^\n\r\"\\]|\\[rnt"\\])+\"                           return STRING;
 [ \t\n\r]                                               ;
 \/\/[^\r\n]*[ \r|\n|\r\n]?                              ;

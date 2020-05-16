@@ -1,23 +1,33 @@
 %{
 	#include <stdlib.h>
+    #include <iostream>
     #include <stack>
     #include <unordered_map>
-	#include "hw3_output.hh"
+    
+	#include "hw3_output.hpp"
+
     #include "Node.hpp"
-    
-    #define YYSTYPE Node*
-    
+    #include "NodeCaster.hpp"
+
+    #include "TypeNodeFactory.hpp"
+    #include "ExpressionNodeFactory.hpp"
+    #include "CallNodeFactory.hpp"
+
+    using namespace std;
+
 	extern int yylineno;
 	extern int yylex();
 	void yyerror(const char*);
-    
-    
-    
-    std::unordered_map<>;
+
+	NodeCaster nodeCaster;
+	TypeNodeFactory typeNodeFactory;
+	ExpressionNodeFactory expressionNodeFactory;
+	CallNodeFactory callNodeFactory;
+
+    // std::unordered_map<>;
 %}
 
-%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE
-%token COMMA ID NUM STRING LBRACE RBRACE LPAREN RPAREN SC
+%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE COMMA ID NUM STRING LBRACE RBRACE LPAREN RPAREN SC
 %nonassoc COND_WITHOUT_ELSE
 %nonassoc ELSE
 %right ASSIGN
@@ -31,7 +41,7 @@
 
 %%
 
-Program			:	 Funcs {}
+Program			:	Funcs {}
                 ;
 		
 Funcs			: 	/* empty */    {}
@@ -41,8 +51,8 @@ Funcs			: 	/* empty */    {}
 FuncDecl		: 	RetType ID LPAREN Formals RPAREN LBRACE Statements RBRACE {}
                 ;
 
-RetType			:	Type {}
-				|	VOID {}
+RetType			:	Type { $$ = $1; }
+				|	VOID { $$ = typeNodeFactory.createVoid(yylineno); }
                 ;
 
 Formals			:	/* empty */ {}
@@ -61,9 +71,24 @@ Statements		:	Statement {}
                 ;
       
 Statement	    :	LBRACE Statements RBRACE {}
-				|	Type ID SC {}
-				|	Type ID ASSIGN Exp SC {}
-				|	ID ASSIGN Exp SC {}
+
+				|	Type ID SC { 	TType varType = nodeCaster.castType($1)->getType();
+									string varIdentifier = nodeCaster.castIdentifier($2)->getValue();
+									/* Insert to symbol table */ }
+
+				|	Type ID ASSIGN Exp SC {	TType varType = nodeCaster.castType($1)->getType();
+											nodeCaster.castExpression($4)->assertAssignAllowed(varType);
+											/* 	In case of type miss match - need to make sure line number 
+												of expression is ok (maybe we need to use line number of the type?)	*/
+											string varIdentifier = nodeCaster.castIdentifier($2)->getValue();
+											/* Insert to symbol table */ }
+
+				|	ID ASSIGN Exp SC { 	string varIdentifier = nodeCaster.castIdentifier($1)->getValue();
+										/* 	varType - Infer type from symbol table 
+											nodeCaster.castExpression($3)->assertAssignAllowed(varType); 
+										   	In case of type miss match - need to make sure line number
+										   	of expression is ok (maybe we need to use line number of the identifier?) */ }
+
 				| 	Call SC {}
 				|	RETURN SC {}
 				|	RETURN Exp SC {}
@@ -75,34 +100,83 @@ Statement	    :	LBRACE Statements RBRACE {}
 				|	CONTINUE SC {}
                 ;
 			
-Call			: 	ID LPAREN ExpList RPAREN {}
-				| 	ID LPAREN RPAREN {}
+Call			: 	ID LPAREN ExpList RPAREN {	auto identifier = nodeCaster.castIdentifier($1);
+												auto expressionList = nodeCaster.castExpressionList($3);
+												$$ = callNodeFactory.create(T_INT, identifier); 
+												/* Use identifier to infer function type!!! */ }
+
+				| 	ID LPAREN RPAREN {	auto identifier = nodeCaster.castIdentifier($1);
+										$$ = callNodeFactory.create(T_INT, identifier);
+										/* Use identifier to infer function type!!! */ }
                 ;
 			
-ExpList			: 	Exp {}
-				| 	Exp COMMA ExpList {}
+ExpList			: 	Exp {	auto firstExpression = nodeCaster.castExpression($1); 
+							$$ = expressionNodeFactory.createList(firstExpression); }
+
+				| 	Exp COMMA ExpList { auto expression = nodeCaster.castExpression($1);
+										auto expressionList = nodeCaster.castExpressionList($3);
+										expressionList->append(expression);
+										$$ = expressionList; }
                 ;
 			
-Type			: 	INT {}
-				|	BYTE {}
-				|	BOOL {}
+Type			: 	INT  { 	$$ = typeNodeFactory.createInt(yylineno);  }
+				|	BYTE { 	$$ = typeNodeFactory.createByte(yylineno); }
+				|	BOOL { 	$$ = typeNodeFactory.createBool(yylineno); }
                 ;
 			
-Exp				:	LPAREN Exp RPAREN {}
-				|	Exp ADDITIVE Exp {}
-                |   Exp MULTIPLICATIVE Exp {}
-				|	ID {}
-				|	Call {}
-				|	NUM {}
-				|	NUM B {}
-				|	STRING {}
-				|	TRUE {}
-				|	FALSE {}
-				|	NOT Exp {}
-				|	Exp AND Exp {}
-				|	Exp OR Exp {}
-				|	Exp RELATIONAL Exp {}
-                |   Exp EQUALITY Exp {}
+Exp				:	LPAREN Exp RPAREN { $$ = $2; }
+
+				|	Exp ADDITIVE Exp { 	auto lhs = nodeCaster.castExpression($1);
+										auto rhs = nodeCaster.castExpression($3);
+										$$ = expressionNodeFactory.createNumericBinop(lhs, rhs); }
+				
+				|	Exp MULTIPLICATIVE Exp { 	auto lhs = nodeCaster.castExpression($1);
+												auto rhs = nodeCaster.castExpression($3);
+												$$ = expressionNodeFactory.createNumericBinop(lhs, rhs); }
+
+				|	ID { 	auto identifierNode = nodeCaster.castIdentifier($1);
+							string identfierStr = identifierNode->getValue();
+							/* Find identifier in symbol table to infer type */ }
+
+				|	Call {	auto callNode = nodeCaster.castCall($1); 
+							$$ = expressionNodeFactory.create(callNode->getLineNumber(), callNode->getType()); }
+
+				|	NUM { $$ = expressionNodeFactory.createInt(yylineno); }
+
+				|	NUM B { auto numNode = nodeCaster.castNum($1);
+							numNode->assertByteValueNotTooLarge();
+							$$ = expressionNodeFactory.createByte(numNode->getLineNumber()); }
+
+				|	STRING { $$ = expressionNodeFactory.createString(yylineno);
+							 /* 
+							  * Though a string only suppose to appear in a print function call,
+							  *	because of how the syntax is structured, I believe no additional 
+							  *	check is required.
+							  */ }
+
+				|	TRUE { $$ = expressionNodeFactory.createBool(yylineno); }
+
+				|	FALSE { $$ = expressionNodeFactory.createBool(yylineno); }
+
+				|	NOT Exp { 	auto expression = nodeCaster.castExpression($2);
+								expression->assertBool();
+							  	$$ = expressionNodeFactory.createBool(expression->getLineNumber()); }
+
+				|	Exp AND Exp { 	auto lhs = nodeCaster.castExpression($1);
+									auto rhs = nodeCaster.castExpression($3);
+									$$ = expressionNodeFactory.createLogicalBinop(lhs, rhs); }
+
+				|	Exp OR Exp { 	auto lhs = nodeCaster.castExpression($1);
+									auto rhs = nodeCaster.castExpression($3);
+									$$ = expressionNodeFactory.createLogicalBinop(lhs, rhs); }
+
+				|	Exp RELATIONAL Exp { 	auto lhs = nodeCaster.castExpression($1);
+											auto rhs = nodeCaster.castExpression($3);
+											$$ = expressionNodeFactory.createRelop(lhs, rhs); }								
+				
+				|	Exp EQUALITY Exp { 	auto lhs = nodeCaster.castExpression($1);
+										auto rhs = nodeCaster.castExpression($3);
+										$$ = expressionNodeFactory.createRelop(lhs, rhs); }
                 ;
 %%
 
