@@ -14,6 +14,6 @@ public:
 	CallNodePtr castCall(NodePtr node) const;
 
 private:
-	void exitWithSyntaxError(int lineNumber) const;
+	void exitWithCastError(int lineNumber, const std::string& expectedTypeStr) const;
 	void exitWithVoidError(int lineNumber) const;
 };

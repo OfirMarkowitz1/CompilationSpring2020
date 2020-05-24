@@ -163,8 +163,6 @@
 	ExpressionNodeFactory expressionNodeFactory;
 	CallNodeFactory callNodeFactory;
 
-    // std::unordered_map<>;
-
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -197,7 +195,7 @@ typedef int YYSTYPE;
 
 
 /* Line 216 of yacc.c.  */
-#line 201 "parser.tab.cpp"
+#line 199 "parser.tab.cpp"
 
 #ifdef short
 # undef short
@@ -501,11 +499,11 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    44,    44,    47,    48,    51,    54,    55,    58,    59,
-      62,    63,    66,    69,    70,    73,    75,    79,    86,    92,
-      93,    94,    95,    96,    97,    98,    99,   100,   103,   108,
-     113,   116,   122,   123,   124,   127,   129,   133,   137,   141,
-     144,   146,   150,   157,   159,   161,   165,   169,   173,   177
+       0,    42,    42,    45,    46,    49,    52,    53,    56,    57,
+      60,    61,    64,    67,    68,    71,    73,    77,    84,    90,
+      91,    92,    93,    94,    95,    96,    97,    98,   101,   106,
+     111,   114,   120,   121,   122,   125,   127,   131,   135,   140,
+     143,   145,   149,   156,   158,   160,   164,   168,   172,   176
 };
 #endif
 
@@ -1489,84 +1487,84 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 44 "parser.ypp"
+#line 42 "parser.ypp"
     {;}
     break;
 
   case 3:
-#line 47 "parser.ypp"
+#line 45 "parser.ypp"
     {;}
     break;
 
   case 4:
-#line 48 "parser.ypp"
+#line 46 "parser.ypp"
     {;}
     break;
 
   case 5:
-#line 51 "parser.ypp"
+#line 49 "parser.ypp"
     {;}
     break;
 
   case 6:
-#line 54 "parser.ypp"
+#line 52 "parser.ypp"
     { (yyval) = (yyvsp[(1) - (1)]); ;}
     break;
 
   case 7:
-#line 55 "parser.ypp"
+#line 53 "parser.ypp"
     { (yyval) = typeNodeFactory.createVoid(yylineno); ;}
     break;
 
   case 8:
-#line 58 "parser.ypp"
+#line 56 "parser.ypp"
     {;}
     break;
 
   case 9:
-#line 59 "parser.ypp"
+#line 57 "parser.ypp"
     {;}
     break;
 
   case 10:
-#line 62 "parser.ypp"
+#line 60 "parser.ypp"
     {;}
     break;
 
   case 11:
-#line 63 "parser.ypp"
+#line 61 "parser.ypp"
     {;}
     break;
 
   case 12:
-#line 66 "parser.ypp"
+#line 64 "parser.ypp"
     {;}
     break;
 
   case 13:
-#line 69 "parser.ypp"
+#line 67 "parser.ypp"
     {;}
     break;
 
   case 14:
-#line 70 "parser.ypp"
+#line 68 "parser.ypp"
     {;}
     break;
 
   case 15:
-#line 73 "parser.ypp"
+#line 71 "parser.ypp"
     {;}
     break;
 
   case 16:
-#line 75 "parser.ypp"
+#line 73 "parser.ypp"
     { 	TType varType = nodeCaster.castType((yyvsp[(1) - (3)]))->getType();
 									string varIdentifier = nodeCaster.castIdentifier((yyvsp[(2) - (3)]))->getValue();
 									/* Insert to symbol table */ ;}
     break;
 
   case 17:
-#line 79 "parser.ypp"
+#line 77 "parser.ypp"
     {	TType varType = nodeCaster.castType((yyvsp[(1) - (5)]))->getType();
 											nodeCaster.castExpression((yyvsp[(4) - (5)]))->assertAssignAllowed(varType);
 											/* 	In case of type miss match - need to make sure line number 
@@ -1576,7 +1574,7 @@ yyreduce:
     break;
 
   case 18:
-#line 86 "parser.ypp"
+#line 84 "parser.ypp"
     { 	string varIdentifier = nodeCaster.castIdentifier((yyvsp[(1) - (4)]))->getValue();
 										/* 	varType - Infer type from symbol table 
 											nodeCaster.castExpression($3)->assertAssignAllowed(varType); 
@@ -1585,52 +1583,52 @@ yyreduce:
     break;
 
   case 19:
-#line 92 "parser.ypp"
+#line 90 "parser.ypp"
     {;}
     break;
 
   case 20:
-#line 93 "parser.ypp"
+#line 91 "parser.ypp"
     {;}
     break;
 
   case 21:
-#line 94 "parser.ypp"
+#line 92 "parser.ypp"
     {;}
     break;
 
   case 22:
-#line 95 "parser.ypp"
+#line 93 "parser.ypp"
     {;}
     break;
 
   case 23:
-#line 96 "parser.ypp"
+#line 94 "parser.ypp"
     {;}
     break;
 
   case 24:
-#line 97 "parser.ypp"
+#line 95 "parser.ypp"
     {;}
     break;
 
   case 25:
-#line 98 "parser.ypp"
+#line 96 "parser.ypp"
     {;}
     break;
 
   case 26:
-#line 99 "parser.ypp"
+#line 97 "parser.ypp"
     {;}
     break;
 
   case 27:
-#line 100 "parser.ypp"
+#line 98 "parser.ypp"
     {;}
     break;
 
   case 28:
-#line 103 "parser.ypp"
+#line 101 "parser.ypp"
     {	auto identifier = nodeCaster.castIdentifier((yyvsp[(1) - (4)]));
 												auto expressionList = nodeCaster.castExpressionList((yyvsp[(3) - (4)]));
 												(yyval) = callNodeFactory.create(T_INT, identifier); 
@@ -1638,20 +1636,20 @@ yyreduce:
     break;
 
   case 29:
-#line 108 "parser.ypp"
+#line 106 "parser.ypp"
     {	auto identifier = nodeCaster.castIdentifier((yyvsp[(1) - (3)]));
 										(yyval) = callNodeFactory.create(T_INT, identifier);
 										/* Use identifier to infer function type!!! */ ;}
     break;
 
   case 30:
-#line 113 "parser.ypp"
+#line 111 "parser.ypp"
     {	auto firstExpression = nodeCaster.castExpression((yyvsp[(1) - (1)])); 
 							(yyval) = expressionNodeFactory.createList(firstExpression); ;}
     break;
 
   case 31:
-#line 116 "parser.ypp"
+#line 114 "parser.ypp"
     { auto expression = nodeCaster.castExpression((yyvsp[(1) - (3)]));
 										auto expressionList = nodeCaster.castExpressionList((yyvsp[(3) - (3)]));
 										expressionList->append(expression);
@@ -1659,66 +1657,67 @@ yyreduce:
     break;
 
   case 32:
-#line 122 "parser.ypp"
+#line 120 "parser.ypp"
     { 	(yyval) = typeNodeFactory.createInt(yylineno);  ;}
     break;
 
   case 33:
-#line 123 "parser.ypp"
+#line 121 "parser.ypp"
     { 	(yyval) = typeNodeFactory.createByte(yylineno); ;}
     break;
 
   case 34:
-#line 124 "parser.ypp"
+#line 122 "parser.ypp"
     { 	(yyval) = typeNodeFactory.createBool(yylineno); ;}
     break;
 
   case 35:
-#line 127 "parser.ypp"
+#line 125 "parser.ypp"
     { (yyval) = (yyvsp[(2) - (3)]); ;}
     break;
 
   case 36:
-#line 129 "parser.ypp"
+#line 127 "parser.ypp"
     { 	auto lhs = nodeCaster.castExpression((yyvsp[(1) - (3)]));
 										auto rhs = nodeCaster.castExpression((yyvsp[(3) - (3)]));
 										(yyval) = expressionNodeFactory.createNumericBinop(lhs, rhs); ;}
     break;
 
   case 37:
-#line 133 "parser.ypp"
+#line 131 "parser.ypp"
     { 	auto lhs = nodeCaster.castExpression((yyvsp[(1) - (3)]));
 												auto rhs = nodeCaster.castExpression((yyvsp[(3) - (3)]));
 												(yyval) = expressionNodeFactory.createNumericBinop(lhs, rhs); ;}
     break;
 
   case 38:
-#line 137 "parser.ypp"
+#line 135 "parser.ypp"
     { 	auto identifierNode = nodeCaster.castIdentifier((yyvsp[(1) - (1)]));
 							string identfierStr = identifierNode->getValue();
+							(yyval) = expressionNodeFactory.create(yylineno, T_INT);
 							/* Find identifier in symbol table to infer type */ ;}
     break;
 
   case 39:
-#line 141 "parser.ypp"
+#line 140 "parser.ypp"
     {	auto callNode = nodeCaster.castCall((yyvsp[(1) - (1)])); 
 							(yyval) = expressionNodeFactory.create(callNode->getLineNumber(), callNode->getType()); ;}
     break;
 
   case 40:
-#line 144 "parser.ypp"
+#line 143 "parser.ypp"
     { (yyval) = expressionNodeFactory.createInt(yylineno); ;}
     break;
 
   case 41:
-#line 146 "parser.ypp"
+#line 145 "parser.ypp"
     { auto numNode = nodeCaster.castNum((yyvsp[(1) - (2)]));
 							numNode->assertByteValueNotTooLarge();
 							(yyval) = expressionNodeFactory.createByte(numNode->getLineNumber()); ;}
     break;
 
   case 42:
-#line 150 "parser.ypp"
+#line 149 "parser.ypp"
     { (yyval) = expressionNodeFactory.createString(yylineno);
 							 /* 
 							  * Though a string only suppose to appear in a print function call,
@@ -1728,45 +1727,45 @@ yyreduce:
     break;
 
   case 43:
-#line 157 "parser.ypp"
+#line 156 "parser.ypp"
     { (yyval) = expressionNodeFactory.createBool(yylineno); ;}
     break;
 
   case 44:
-#line 159 "parser.ypp"
+#line 158 "parser.ypp"
     { (yyval) = expressionNodeFactory.createBool(yylineno); ;}
     break;
 
   case 45:
-#line 161 "parser.ypp"
+#line 160 "parser.ypp"
     { 	auto expression = nodeCaster.castExpression((yyvsp[(2) - (2)]));
 								expression->assertBool();
 							  	(yyval) = expressionNodeFactory.createBool(expression->getLineNumber()); ;}
     break;
 
   case 46:
-#line 165 "parser.ypp"
+#line 164 "parser.ypp"
     { 	auto lhs = nodeCaster.castExpression((yyvsp[(1) - (3)]));
 									auto rhs = nodeCaster.castExpression((yyvsp[(3) - (3)]));
 									(yyval) = expressionNodeFactory.createLogicalBinop(lhs, rhs); ;}
     break;
 
   case 47:
-#line 169 "parser.ypp"
+#line 168 "parser.ypp"
     { 	auto lhs = nodeCaster.castExpression((yyvsp[(1) - (3)]));
 									auto rhs = nodeCaster.castExpression((yyvsp[(3) - (3)]));
 									(yyval) = expressionNodeFactory.createLogicalBinop(lhs, rhs); ;}
     break;
 
   case 48:
-#line 173 "parser.ypp"
+#line 172 "parser.ypp"
     { 	auto lhs = nodeCaster.castExpression((yyvsp[(1) - (3)]));
 											auto rhs = nodeCaster.castExpression((yyvsp[(3) - (3)]));
 											(yyval) = expressionNodeFactory.createRelop(lhs, rhs); ;}
     break;
 
   case 49:
-#line 177 "parser.ypp"
+#line 176 "parser.ypp"
     { 	auto lhs = nodeCaster.castExpression((yyvsp[(1) - (3)]));
 										auto rhs = nodeCaster.castExpression((yyvsp[(3) - (3)]));
 										(yyval) = expressionNodeFactory.createRelop(lhs, rhs); ;}
@@ -1774,7 +1773,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 1778 "parser.tab.cpp"
+#line 1777 "parser.tab.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1988,7 +1987,7 @@ yyreturn:
 }
 
 
-#line 181 "parser.ypp"
+#line 180 "parser.ypp"
 
 
 int main()

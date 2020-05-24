@@ -8,119 +8,115 @@
 #include "TType.h"
 #include "FunctionArgumentData.hpp"
 
-class ScopeSymbolTable;
-typedef std::shared_ptr<ScopeSymbolTable> ScopeSymbolTablePtr;
+class VariablesScope;
+typedef std::shared_ptr<VariablesScope> VariablesScopePtr;
+typedef std::shared_ptr<const VariablesScope> ConstVariablesScopePtr;
 
-class SymbolEntry;
-typedef std::shared_ptr<SymbolEntry> SymbolEntryPtr;
+class VariableEntry;
+typedef std::shared_ptr<VariableEntry> VariableEntryPtr;
 
-class SymbolType;
-typedef std::shared_ptr<SymbolType> SymbolTypePtr;
+class FunctionEntry;
+typedef std::shared_ptr<FunctionEntry> FunctionEntryPtr;
 
-class SymbolTable
+
+class VariablesTable
 {
 public:
-	SymbolTable(const int& lineNumber);
+	VariablesTable();
 
-	void add(const std::string& id, SymbolTypePtr type) const;
+	void add(const std::string& id, TType type);
+
+	VariableEntryPtr find(const std::string& id) const;
 
 	void pushRegularScope();
 	void pushFunctionScope(const std::vector<FunctionArgumentData>& arguments);
 
-	void popScope();
-
-	void assertDefinedVariable(const std::string& id) const;
-	void assertDefinedFunction(const std::string& id) const;
-
-	void assertNotDefined(const std::string& id) const;
+	ConstVariablesScopePtr popScope();
 
 private:
-		
-	void pushScope(const std::vector<FunctionArgumentData>& arguments);
+	bool contains(const std::string& id) const;
 
-	SymbolEntryPtr find(const std::string& id) const;
+	void assertScopesStackNotEmpty(const std::string& actionDescription) const;
+
+	std::stack<VariablesScope> _scopesStack;
+	
+	std::unordered_map< std::string, VariableEntryPtr > _varIdToEntryMap;
+};
+
+class VariablesScope
+{
+public:
+	VariablesScope(int startingOffset);
+	VariablesScope(const std::vector<FunctionArgumentData>& arguments);
+
+	void add(VariableEntryPtr entry);
 
 	bool contains(const std::string& id) const;
 
-	void assertScopeTablesStackNotEmpty() const;
+	void print() const;
 
-	std::stack<ScopeSymbolTablePtr> _scopeTablesStack;
-	
-	std::unordered_map< std::string, SymbolEntryPtr > _symbolIdToEntryMap;
-
-	const int& _lineNumber;
-};
-
-class ScopeSymbolTable
-{
-public:
-	ScopeSymbolTable(int startingOffset, const std::vector<FunctionArgumentData>& arguments = {});
-
-	void add(const std::string& id, SymbolTypePtr type);
-
-	const std::vector<SymbolEntryPtr>& getSymbolEntries() const;
-
-	int getCurrentOffset() const;
+	int getCurrentOffset() const;	
 
 private:
-	std::vector<SymbolEntryPtr> _entries;
-	int _currentOffset;
+	std::vector<VariableEntryPtr> _entries;
+
+	int _startingOffset;
+};
+
+class GlobalScopeFunctionsTable
+{
+public:
+	GlobalScopeSymbolTable();
+
+	void add(const std::string& id, TType retType, const std::vector<TType>& argTypes);
+
+	bool contains(const std::string& id) const;
+
+	FunctionEntryPtr find(const std::string& id) const;
+
+	void print() const;
+
+private:
+	std::vector<FunctionEntryPtr> _entries;
+
+	std::unordered_map< std::string, FunctionEntryPtr > _functionIdToEntryMap;
 };
 
 class SymbolEntry
 {
-public:
-	SymbolEntry(const std::string& id, int offset, SymbolTypePtr type);
+protected:
+	SymbolEntry(const std::string& id);
 
-	const std::string& getId() const;
-	SymbolTypePtr getType() const;
-
-	void printEntry() const;
-
-private:
-	const std::string _id;
-	const SymbolTypePtr _type;
-	const int _offset
+	const std::string _id
 };
 
-class SymbolType
+class VariableEntry : public SymbolEntry
 {
 public:
-	virtual ~SymbolType();
+	VariableEntry(const std::string& id, TType varType);
 
-	virtual bool isFunctionType() const = 0;
+	TType getType() const;
 
-	virtual std::string toString() const = 0;
+	void print() const;
 
 private:
-	std::string getTTypeString(TType type) const;
+	const TType _varType;
 };
 
-class VariableSymbolType : public SymbolType
+class FunctionEntry : public SymbolEntry
 {
 public:
-	VariableSymbolType(TType type);
-	virtual ~VariableSymbolType();
+	FunctionEntry(const std::string& id, TType retType, const std::vector<TType>& argTypes);
 
-	bool isFunctionType() const override;
+	TType getRetType() const;
 
-	std::string toString() const override;
+	const std::std::vector<TType>& getArgTypes() const;
 
-private:
-	const TType _type;
-};
-
-class FunctionSymbolType : public SymbolType
-{
-public:
-	FunctionSymbolType(TType returnType, const std::vector<TType>& argumentTypes);
-	virtual ~FunctionSymbolType();
-
-	bool isFunctionType() const override;
-
-	std::string toString() const override;
+	void print() const;
 
 private:
-	const TType _returnType;
-	const std::vector<TType> _argumentTypes;
-};
+	const TType _retType;
+	const std::vector<TType> _argTypes;
+
+	static const int OFFSET;
+}

@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <functional>
 #include "TType.h"
 
 class Node;
@@ -67,12 +68,13 @@ private:
 class TypedNode : public Node
 {
 public:
-	TypedNode(int lineNumber, TType type);
-    virtual ~TypedNode() = 0;
+    virtual ~TypedNode();
     
     TType getType() const;
 
 protected:
+    TypedNode(int lineNumber, TType type);
+
     const TType _type;
 };
 
@@ -101,18 +103,29 @@ private:
 class ExpressionListNode : public Node
 {
 public:
-	ExpressionListNode(int lineNumber, ExpressionNodePtr first);
+	ExpressionListNode(ExpressionNodePtr first);
     virtual ~ExpressionListNode();
 
     void append(ExpressionNodePtr expression);
 
+    void assertCall(int callLineNumber, const std::string& callId, const std::vector<TType>& argTypes) const;
+
 private:
+     std::function<void()> getExitWithPrototypeMismatchErrorClosure(
+        int callLineNumber, const std::string& callId, const std::vector<TType>& argTypes
+    ) const;
+
 	std::vector<ExpressionNodePtr> _expressionList;
 };
 
 class CallNode : public TypedNode
 {
 public:
-	CallNode(TType returnType, IdentifierNodePtr identifier);
-	virtual ~CallNode();
+    CallNode(TType type, IdentifierNodePtr identifierNode);
+    virtual ~CallNode();
+
+    const std::string& getId() const;
+
+private:
+    IdentifierNodePtr _identifierNode;
 };

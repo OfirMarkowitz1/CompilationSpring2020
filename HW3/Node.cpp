@@ -1,5 +1,6 @@
 #include "Node.hpp"
 #include "hw3_output.hpp"
+#include 
 
 using namespace std;
 
@@ -117,8 +118,8 @@ void ExpressionNode::exitWithMismatchError() const
 	exit(1);
 }
 
-ExpressionListNode::ExpressionListNode(int lineNumber, ExpressionNodePtr first) :
-Node(lineNumber),
+ExpressionListNode::ExpressionListNode(ExpressionNodePtr first) :
+Node(first->getLineNumber()),
 _expressionList( {first} )
 {
 }
@@ -132,11 +133,47 @@ void ExpressionListNode::append(ExpressionNodePtr expression)
 	_expressionList.push_back(expression);
 }
 
-CallNode::CallNode(TType returnType, IdentifierNodePtr identifier) :
-TypedNode(identifier->getLineNumber(), returnType)
+void ExpressionListNode::assertCall(int callLineNumber, const std::string& callId, const std::vector<TType>& argTypes) const
+{
+	function<void()> exitWithPrototypeMismatchErrorClosure =
+		getExitWithPrototypeMismatchErrorClosure(callLineNumber, callId, argTypes);
+
+	if (_expressionList.size() != argTypes.size())
+	{
+		exitWithPrototypeMismatchErrorClosure();
+	}
+
+	for (int i = 0; i < _expressionList.size; i++)
+	{
+		if (_expressionList[i]->getType() != argTypes[i])
+		{
+			exitWithPrototypeMismatchErrorClosure();
+		}	
+	}
+}
+
+std::function<void()> ExpressionListNode::getExitWithPrototypeMismatchErrorClosure(
+        int callLineNumber, const std::string& callId, const std::vector<TType>& argTypes
+    ) const
+{
+	return [&]() {
+		output::errorPrototypeMismatch(callLineNumber, callId, getTTypesStrings(argTypes));
+		exit(1);
+	};
+}
+
+CallNode::CallNode(TType type, IdentifierNodePtr identifierNode) :
+TypedNode(identifierNode->getLineNumber(), type),
+_identifierNode(identifierNode)
 {
 }
 
 CallNode::~CallNode()
 {
 }
+
+const std::string& CallNode::getId() const
+{
+	return _identifierNode->getValue();
+}
+

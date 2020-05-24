@@ -2,224 +2,178 @@
 #include "hw3_output.hpp"
 #include <iostream>
 
-using namepace std;
+using namespace std;
 
-SymbolTable::SymbolTable(const int& lineNumber) :
-_lineNumber(lineNumber)
+VariablesTable::VariablesTable()
 {
 }
 
-void SymbolTable::add(const std::string& id, SymbolTypePtr type) const
+void VariablesTable::add(const std::string& id, TType type)
 {
-	assertScopeTablesStackNotEmpty();
-	assertNotContains(id);
+	assertScopesStackNotEmpty("add");
 
-	_scopeTablesStack.top()->add(id, type);
+	auto entry = make_shared<VariableEntry>(id, type);
+
+	_scopesStack.top()->add(entry);
+
+	_varIdToEntryMap[id] = entry;
 }
 
-void SymbolTable::pushRegularScope()
+bool VariablesTable::contains(const std::string& id) const
 {
-	pushScope({});
+	return (_varIdToEntryMap.find(id) != _varIdToEntryMap.end());
 }
 
-
-void SymbolTable::pushFunctionScope(const std::vector<FunctionArgumentData>& arguments)
+VariableEntryPtr VariablesTable::find(const std::string& id) const
 {
-	pushScope(arguments);
+	auto varIdToEntryMapIter = _varIdToEntryMap.find(id);
+
+	return (varIdToEntryMapIter != _varIdToEntryMap.end() ? varIdToEntryMapIter->second : nullptr)
 }
 
-void SymbolTable::pushScope(const std::vector<FunctionArgumentData>& arguments)
-{	
-	int scopeStartingOffset = (_scopeTablesStack.empty() ? 0 : _scopeTablesStack.top()->getCurrentOffset());
+void VariablesTable::pushRegularScope()
+{
+	const int startingOffset = (_scopesStack.empty() ? 0 : _scopesStack.top()->getCurrentOffset());
 
-	_scopeTablesStack.push(make_shared<ScopeSymbolTable>(scopeStartingOffset, arguments));
+	_scopesStack.push(make_shared<VariablesScope>(startingOffset));
 }
 
-void SymbolTable::popScope()
+void VariablesTable::pushFunctionScope(const std::vector<FunctionArgumentData>& arguments)
 {
-	assertScopeTablesStackNotEmpty();
+	_scopesStack.push(make_shared<VariablesScope>(arguments));
+}
 
-	output::endScope();
+ConstVariablesScopePtr VariablesTable::popScope()
+{
+	assertScopesStackNotEmpty("pop");
 
-	for (SymbolEntryPtr symbolEntry : _scopeTablesStack.top()->getSymbolEntries())
+	ConstVariablesScopePtr lastScope = _scopesStack.top();
+
+	_scopesStack.pop();
+
+	return lastScope;
+}
+
+void VariablesTable::assertScopesStackNotEmpty(const std::string& actionDescription) const
+{
+	if (_scopesStack.empty())
 	{
-		symbolEntry->printEntry();
-		_symbolIdToEntryMap.erase(symbolEntry->getId());
-	}
-
-	_scopeTablesStack.pop();
-}
-
-SymbolEntryPtr SymbolTable::find(const std::string& id) const
-{
-	auto entryIter = _symbolIdToEntryMap.find(id);
-
-	if (entryIter != _symbolIdToEntryMap.end())
-	{
-		return entryIter->second;
-	}
-
-	return nullptr;
-}
-
-bool SymbolTable::contains(const std::string& id) const
-{
-	return (_symbolIdToEntryMap.find(id) != _symbolIdToEntryMap.end());
-}
-
-void SymbolTable::assertDefinedVariable(const std::string& id) const
-{
-	SymbolEntryPtr symbolEntry = find(id);
-
-	if ((symbolEntry == nullptr) || symbolEntry->getType()->isFunctionType())
-	{
-		output::errorUndef(_lineNumber, id);
+		cout << "Error: scopes stack is empty while trying to " << actionDescription << endl;
 		exit(1);
 	}
 }
 
-void SymbolTable::assertDefinedFunction(const std::string& id) const
+VariablesScope::VariablesScope(int startingOffset) :
+_startingOffset(startingOffset)
 {
-	SymbolEntryPtr symbolEntry = find(id);
+}
 
-	if ((symbolEntry == nullptr) || !symbolEntry->getType()->isFunctionType())
+VariablesScope::VariablesScope(const std::vector<FunctionArgumentData>& arguments) :
+_startingOffset(-arguments.size())
+{
+	for (auto reverseIter = arguments.rbegin(); reverseIter != arguments.rend(); ++reverseIter)
 	{
-		output::errorUndefFunc(_lineNumber, id);
-		exit(1);
+		add(make_shared<VariableEntry>(reverseIter->getId(), reverseIter->getType()));
 	}
 }
 
-void SymbolTable::assertNotDefined(const std::string& id) const
+void VariablesScope::add(VariableEntryPtr entry)
 {
-	if (contains(id))
+	_entries.push_back(entry);
+}
+
+void VariablesScope::print() const
+{
+	int currOffset = _startingOffset;
+
+	for (const VariableEntryPtr& entry : _entries)
 	{
-		output::errorDef(_lineNumber, id);
-		exit(1);
+		entry->print(currOffset++);
 	}
 }
 
-void SymbolTable::assertScopeTablesStackNotEmpty() const
+int VariablesScope::getCurrentOffset() const
 {
-	if (_scopeTablesStack.empty())
+	return _startingOffset + _entries.size();
+}
+
+GlobalScopeFunctionsTable::GlobalScopeSymbolTable()
+{
+}
+
+void GlobalScopeFunctionsTable::add(const std::string& id, TType retType, const std::vector<TType>& argTypes)
+{
+
+	auto entry = make_shared<FunctionEntry>(id, retType, argTypes);
+
+	_entries.push_back(entry);
+
+	_functionIdToEntryMap[id] = entry;
+}
+
+FunctionEntryPtr GlobalScopeFunctionsTable::find(const std::string& id) const
+{
+	auto functionIdToEntryMapIter = _functionIdToEntryMap.find(id);
+
+	return (functionIdToEntryMapIter != _functionIdToEntryMap.end() ? functionIdToEntryMapIter->second : nullptr);
+}
+
+void GlobalScopeFunctionsTable::print() const
+{
+	for (const FunctionEntryPtr& entry : _entries)
 	{
-		cout << "Expected to be an existing scope " << endl
-		exit(1);	
+		entry->print();
 	}
 }
 
-ScopeSymbolTable::ScopeSymbolTable(int startingOffset, const std::vector<FunctionArgumentData>& arguments) :
-_currentOffset(startingOffset)
+bool GlobalScopeFunctionsTable::contains(const std::string& id) const
 {
-	int currentArgumentOffset = -1;
-
-	for (const auto& argument : arguments)
-	{
-		_entries.emplace_back(argument.getId(), currentArgumentOffset, argument.getType());	
-
-		currentArgumentOffset--;
-	}
+	return (_functionIdToEntryMap.find(id) != _functionIdToEntryMap.end());
 }
 
-void ScopeSymbolTable::add(const std::string& id, SymbolTypePtr type)
-{
-	_entries.emplace_back(id, _currentOffset, type);
-
-	_currentOffset++;
-}
-
-const std::vector<SymbolEntryPtr>& ScopeSymbolTable::getSymbolEntries() const
-{
-	return _entries;
-}
-
-int ScopeSymbolTable::getCurrentOffset() const
-{
-	return _currentOffset;
-}
-
-SymbolEntry::SymbolEntry(const std::string& id, int offset, SymbolTypePtr type) :
-_id(id),
-_offset(offset),
-_type(type)
+SymbolEntry::SymbolEntry(const std::string& id) :
+_id(id)
 {
 }
 
-const std::string& SymbolEntry::getId() const
-{
-	return _id;
-}
-
-SymbolTypePtr SymbolEntry::getType() const
-{
-	return _type;
-}
-
-void SymbolEntry::printEntry() const
-{
-	output::printID(_id, _offset, _type->toString());
-}
-
-std::string SymbolEntry::toString() const
-{
-	return output::print
-}
-
-SymbolType::~SymbolType()
+VariableEntry::VariableEntry(const std::string& id, TType varType) :
+SymbolEntry(id),
+_varType(varType)
 {
 }
 
-std::string SymbolType::getTTypeString(TType type) const
+TType VariableEntry::getType() const
 {
-	switch (type)
-	{
-	case T_INT:
-		return "INT";
-	case T_BYTE:
-		return "BYTE";
-	case T_BOOL:
-		return "BOOL";
-	case T_STRING:
-		return "STRING";
-	case T_VOID:
-		return "VOID";
-	}
+	return _varType;
 }
 
-VariableSymbolType::VariableSymbolType(TType type) :
-_type(type)
+void VariableEntry::print(int offset) const
+{
+	output::printID(_id, offset, getTTypeString(_varType));
+}
+
+const int FunctionEntry::OFFSET = 0;
+
+FunctionEntry::FunctionEntry(const std::string& id, TType retType, const std::vector<TType>& argTypes) :
+SymbolEntry(id),
+_retType(retType),
+_argTypes(argTypes)
 {
 }
 
-VariableSymbolType::~VariableSymbolType()
+TType FunctionEntry::getRetType() const
 {
+	return _retType;
 }
 
-bool VariableSymbolType::isFunctionType() const
+const std::std::vector<TType>& FunctionEntry::getArgTypes() const
 {
-	return false;
+	return _argTypes;
 }
 
-std::string VariableSymbolType::toString() const
+void FunctionEntry::print() const
 {
-	return getTTypeString(_type);
-}
+	const string functionTypeString = output::makeFunctionType(_retType, getTTypesStrings(_argTypes));
 
-FunctionSymbolType::FunctionSymbolType(TType returnType, const std::vector<TType>& argumentTypes) :
-_returnType(returnType),
-_argumentTypes(argumentTypes)
-{
-}
-
-FunctionSymbolType::~FunctionSymbolType()
-{
-}
-
-bool FunctionSymbolType::isFunctionType() const
-{
-	return true;
-}
-
-std::string FunctionSymbolType::toString() const
-{
-	return output::makeFunctionType(_returnType, _argumentTypes);
+	output::printID(_id, OFFSET, functionTypeString);
 }

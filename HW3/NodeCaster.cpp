@@ -1,5 +1,4 @@
 #include "NodeCaster.hpp"
-#include "hw3_output.hpp"
 #include <memory>
 #include <iostream>
 
@@ -11,7 +10,7 @@ NumNodePtr NodeCaster::castNum(NodePtr node) const
 
 	if (numNode == nullptr)
 	{
-		exitWithSyntaxError(node->getLineNumber());
+		exitWithCastError(node->getLineNumber(), "num");
 	}
 
 	return numNode;
@@ -23,7 +22,7 @@ IdentifierNodePtr NodeCaster::castIdentifier(NodePtr node) const
 
 	if (identifierNode == nullptr)
 	{
-		exitWithSyntaxError(node->getLineNumber());
+		exitWithCastError(node->getLineNumber(), "id");
 	}
 
 	return identifierNode;
@@ -35,7 +34,7 @@ TypeNodePtr NodeCaster::castType(NodePtr node) const
 
 	if (typeNode == nullptr)
 	{
-		exitWithSyntaxError(node->getLineNumber());
+		exitWithCastError(node->getLineNumber(), "type");
 	}
 
 	if (typeNode->getType() == T_VOID)
@@ -52,7 +51,7 @@ TypeNodePtr NodeCaster::castReturnType(NodePtr node) const
 
 	if (returnTypeNode == nullptr)
 	{
-		exitWithSyntaxError(node->getLineNumber());
+		exitWithCastError(node->getLineNumber(), "ret type");
 	}
 
 	return returnTypeNode;
@@ -64,7 +63,7 @@ ExpressionNodePtr NodeCaster::castExpression(NodePtr node) const
 
 	if (experssionNode == nullptr)
 	{
-		exitWithSyntaxError(node->getLineNumber());
+		exitWithCastError(node->getLineNumber(), "exp");
 	}
 
 	return experssionNode;
@@ -76,7 +75,7 @@ ExpressionListNodePtr NodeCaster::castExpressionList(NodePtr node) const
 
 	if (experssionListNode == nullptr)
 	{
-		exitWithSyntaxError(node->getLineNumber());
+		exitWithCastError(node->getLineNumber(), "exp list");
 	}
 
 	return experssionListNode;
@@ -88,15 +87,15 @@ CallNodePtr NodeCaster::castCall(NodePtr node) const
 
 	if (callNode == nullptr)
 	{
-		exitWithSyntaxError(node->getLineNumber());
+		exitWithCastError(node->getLineNumber(), "call");
 	}
 
 	return callNode;
 }
 
-void NodeCaster::exitWithSyntaxError(int lineNumber) const
+void NodeCaster::exitWithCastError(int lineNumber, const std::string& expectedTypeStr) const
 {
-	output::errorSyn(lineNumber);
+	cout << "Expected " << expectedTypeStr << " in line number " << lineNumber << endl;
 	exit(1);
 }
 
