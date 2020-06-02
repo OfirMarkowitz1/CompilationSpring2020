@@ -16,6 +16,8 @@ void ParserReduceHandler::reduceProgram()
 {
 	_symbolTableAsserter.assertMainFunctionDefined();
 
+	output::endScope();
+
 	_functionsTable.print();
 }
 
@@ -96,6 +98,8 @@ void ParserReduceHandler::openScope()
 
 void ParserReduceHandler::closeScope()
 {
+	output::endScope();
+
 	ConstVariablesScopePtr variablesScope = _variablesTable.popScope();
 
 	variablesScope->print();
@@ -172,7 +176,7 @@ void ParserReduceHandler::handleWhileBeforeScope(NodePtr expression)
 	openScope();
 }
 
-void ParserReduceHandler::handleWhileAfterScope(NodePtr expression)
+void ParserReduceHandler::handleWhileAfterScope()
 {
 	_loopsScopesCounter--;
 

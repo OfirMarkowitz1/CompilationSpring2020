@@ -4,6 +4,7 @@
 	#include "hw3_output.hpp"
     #include "ParserReduceHandler.hpp"
     
+    extern int yylineno;
 	extern int yylex();
 	void yyerror(const char*);
     
@@ -65,15 +66,11 @@ Statement	    :	LBRACE { parserReduceHandler.openScope(); } Statements RBRACE { 
 				|	RETURN SC { parserReduceHandler.reduceVoidReturn(); }
 				|	RETURN Exp SC { parserReduceHandler.reduceReturn($2); }
 
-                |	IF LPAREN Exp RPAREN { parserReduceHandler.handleIfBeforeScope($3); } Statement %prec COND_WITHOUT_ELSE { parserReduceHandler.closeScope(); }
+                |	IfBase Statement { parserReduceHandler.closeScope(); } %prec COND_WITHOUT_ELSE
+				| 	IfBase Statement ELSE { parserReduceHandler.closeScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); }
 
-				| 	IF LPAREN Exp RPAREN { parserReduceHandler.handleIfBeforeScope($3); } Statement ELSE { parserReduceHandler.closeScope(); parserReduceHandler.openScope(); }
-					Statement { parserReduceHandler.closeScope(); }
-
-                |	WHILE LPAREN Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3); } Statement %prec COND_WITHOUT_ELSE { parserReduceHandler.handleWhileAfterScope(); }
-
-            	|	WHILE LPAREN Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3); } Statement ELSE { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); }
-            		Statement { parserReduceHandler.closeScope(); }
+                |	WhileBase Statement { parserReduceHandler.handleWhileAfterScope(); } %prec COND_WITHOUT_ELSE
+            	|	WhileBase Statement ELSE { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); }
 
 				|	BREAK SC { parserReduceHandler.reduceBreak(); }
 				|	CONTINUE SC { parserReduceHandler.reduceContinue(); }
@@ -124,6 +121,13 @@ Exp				:	LPAREN Exp RPAREN { parserReduceHandler.reduceInParenthesesExpression($
 				
 				|	Exp EQUALITY Exp { parserReduceHandler.reduceRelopExpression($$, $1, $3); }
                 ;
+
+IfBase			:	IF LPAREN Exp RPAREN { parserReduceHandler.handleIfBeforeScope($3); };
+				;
+
+WhileBase		:	WHILE LPAREN Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3); };
+				;
+
 %%
 
 int main()

@@ -151,7 +151,7 @@ void ExpressionListNode::assertCall(int callIdLineNumber, const std::string& cal
 	for (;(expressionListIter != _expressionList.end()) && (argTypesIter != argTypes.end());
 		 ++expressionListIter, ++argTypesIter)
 	{	
-		if ((*expressionListIter)->isAssignAllowed(*argTypesIter))
+		if (!(*expressionListIter)->isAssignAllowed(*argTypesIter))
 		{
 			exitWithPrototypeMismatchError((*expressionListIter)->getLineNumber(), callId, argTypes);
 		}	
@@ -168,7 +168,7 @@ void ExpressionListNode::assertNoArgumentsCall(int callIdLineNumber, const std::
 
 void ExpressionListNode::exitWithPrototypeMismatchError(int lineNumber, const std::string& callId, const std::vector<TType>& argTypes)
 {
-		vector<string> typesStrings = getTTypesStrings(argTypes);
+		vector<string> typesStrings = TTypeUtils::getTTypesStrings(argTypes);
 		output::errorPrototypeMismatch(lineNumber, callId, typesStrings);
 		exit(1);
 }
@@ -208,7 +208,9 @@ FormalsNode::~FormalsNode()
 
 void FormalsNode::pushFront(FormalDeclarationNodePtr formalDeclarationNode)
 {
-	_arguments.emplace_front(formalDeclarationNode->getId(), formalDeclarationNode->getType());
+	FunctionArgumentDataPtr argument = make_shared<FunctionArgumentData>(formalDeclarationNode->getId(), formalDeclarationNode->getType());
+	
+	_arguments.push_front(argument);
 }
 
 std::vector<FunctionArgumentDataPtr> FormalsNode::getArguments() const

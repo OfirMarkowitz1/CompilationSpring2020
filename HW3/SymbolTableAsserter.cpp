@@ -44,8 +44,8 @@ void SymbolTableAsserter::assertMainFunctionDefined() const
 	FunctionEntryPtr functionEntry = _functionsTable.find(MAIN_FUNCTION_ID);
 	
 	if ((functionEntry == nullptr) ||
-		(functionEntry->getRetType() == MAIN_FUNCTION_RET_TYPE) ||
-		(functionEntry->getArgTypes().empty()))
+		(functionEntry->getRetType() != MAIN_FUNCTION_RET_TYPE) ||
+		!functionEntry->getArgTypes().empty())
 	{
 		output::errorMainMissing();
 		exit(1);

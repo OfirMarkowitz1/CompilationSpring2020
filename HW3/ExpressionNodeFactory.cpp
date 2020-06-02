@@ -53,5 +53,5 @@ ExpressionNodePtr ExpressionNodeFactory::create(int lineNumber, TType type) cons
 
 ExpressionListNodePtr ExpressionNodeFactory::createList(ExpressionNodePtr first) const
 {
-	return std::make_shared<ExpressionListNode>(first->getLineNumber(), first);	
+	return std::make_shared<ExpressionListNode>(first);	
 }

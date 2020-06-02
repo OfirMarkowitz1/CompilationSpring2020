@@ -16,6 +16,6 @@ public:
 	TType getType() const;
 
 private:
-	const std::string _id;
-	const TType _type;	
+	std::string _id;
+	TType _type;	
 };

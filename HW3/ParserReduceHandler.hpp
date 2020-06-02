@@ -32,7 +32,7 @@ public:
 	void reduceReturn(NodePtr returnExpression);
 	void handleIfBeforeScope(NodePtr expression);
 	void handleWhileBeforeScope(NodePtr expression);
-	void handleWhileAfterScope(NodePtr expression);
+	void handleWhileAfterScope();
 	void reduceBreak();
 	void reduceContinue();
 	void reduceCall(NodePtr& call, NodePtr functionId, NodePtr expressionList);

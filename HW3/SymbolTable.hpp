@@ -27,7 +27,7 @@ public:
 	void add(const std::string& id, TType type);
 
 	VariableEntryPtr find(const std::string& id) const;
-	
+
 	bool contains(const std::string& id) const;
 
 	void pushRegularScope();
@@ -48,19 +48,18 @@ class VariablesScope
 {
 public:
 	VariablesScope(int startingOffset);
-	VariablesScope(const std::vector<FunctionArgumentDataPtr>& arguments);
 
 	void add(VariableEntryPtr entry);
-
-	bool contains(const std::string& id) const;
 
 	void print() const;
 
 	int getCurrentOffset() const;	
 
+	const std::vector<VariableEntryPtr>& getEntries() const;
+
 private:
 
-	void assertScopeHasEnoughEntries() const;
+	void assertFunctionScopeHasEnoughEntries() const;
 
 	std::vector<VariableEntryPtr> _entries;
 
@@ -88,6 +87,9 @@ private:
 
 class SymbolEntry
 {
+public:
+	const std::string& getId() const;
+
 protected:
 	SymbolEntry(const std::string& id);
 
