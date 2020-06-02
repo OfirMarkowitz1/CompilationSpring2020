@@ -211,6 +211,8 @@ void FormalsNode::pushFront(FormalDeclarationNodePtr formalDeclarationNode)
 	FunctionArgumentDataPtr argument = make_shared<FunctionArgumentData>(formalDeclarationNode->getId(), formalDeclarationNode->getType());
 	
 	_arguments.push_front(argument);
+
+	_argumentsIds.insert(formalDeclarationNode->getId());
 }
 
 std::vector<FunctionArgumentDataPtr> FormalsNode::getArguments() const
