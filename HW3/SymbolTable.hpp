@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <stack>
 #include <string>
-#include "TType.h"
+#include "TType.hpp"
 #include "FunctionArgumentData.hpp"
 
 class VariablesScope;

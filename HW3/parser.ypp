@@ -1,6 +1,5 @@
 %{
 	#include <stdlib.h>
-    #include <iostream>
 	#include "hw3_output.hpp"
     #include "ParserReduceHandler.hpp"
     

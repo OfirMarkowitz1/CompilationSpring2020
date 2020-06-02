@@ -139,7 +139,6 @@
 #line 1 "parser.ypp"
 
 	#include <stdlib.h>
-    #include <iostream>
 	#include "hw3_output.hpp"
     #include "ParserReduceHandler.hpp"
     
@@ -183,7 +182,7 @@ typedef int YYSTYPE;
 
 
 /* Line 216 of yacc.c.  */
-#line 187 "parser.tab.cpp"
+#line 186 "parser.tab.cpp"
 
 #ifdef short
 # undef short
@@ -489,12 +488,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    30,    30,    33,    34,    37,    37,    40,    41,    44,
-      45,    48,    49,    52,    55,    56,    59,    59,    61,    63,
-      65,    67,    68,    69,    71,    72,    72,    74,    75,    75,
-      77,    78,    81,    83,    86,    88,    91,    92,    93,    96,
-      98,   100,   102,   104,   106,   108,   110,   112,   114,   116,
-     118,   120,   122,   124,   127,   130
+       0,    29,    29,    32,    33,    36,    36,    39,    40,    43,
+      44,    47,    48,    51,    54,    55,    58,    58,    60,    62,
+      64,    66,    67,    68,    70,    71,    71,    73,    74,    74,
+      76,    77,    80,    82,    85,    87,    90,    91,    92,    95,
+      97,    99,   101,   103,   105,   107,   109,   111,   113,   115,
+     117,   119,   121,   123,   126,   129
 };
 #endif
 
@@ -1482,253 +1481,253 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 30 "parser.ypp"
+#line 29 "parser.ypp"
     { parserReduceHandler.reduceProgram(); ;}
     break;
 
   case 5:
-#line 37 "parser.ypp"
+#line 36 "parser.ypp"
     { parserReduceHandler.addFunctionAndOpenScope((yyvsp[(1) - (6)]), (yyvsp[(2) - (6)]), (yyvsp[(4) - (6)])); ;}
     break;
 
   case 6:
-#line 37 "parser.ypp"
+#line 36 "parser.ypp"
     { parserReduceHandler.closeScope(); ;}
     break;
 
   case 7:
-#line 40 "parser.ypp"
+#line 39 "parser.ypp"
     { parserReduceHandler.reduceReturnType((yyval), (yyvsp[(1) - (1)])); ;}
     break;
 
   case 8:
-#line 41 "parser.ypp"
+#line 40 "parser.ypp"
     { parserReduceHandler.reduceVoidReturnType((yyval)); ;}
     break;
 
   case 9:
-#line 44 "parser.ypp"
+#line 43 "parser.ypp"
     { parserReduceHandler.reduceEmptyFormals((yyval)); ;}
     break;
 
   case 10:
-#line 45 "parser.ypp"
+#line 44 "parser.ypp"
     { parserReduceHandler.reduceFormals((yyval), (yyvsp[(1) - (1)])); ;}
     break;
 
   case 11:
-#line 48 "parser.ypp"
+#line 47 "parser.ypp"
     { parserReduceHandler.reduceFormalsList((yyval), (yyvsp[(1) - (1)])); ;}
     break;
 
   case 12:
-#line 49 "parser.ypp"
+#line 48 "parser.ypp"
     { parserReduceHandler.reduceFormalsList((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)])); ;}
     break;
 
   case 13:
-#line 52 "parser.ypp"
+#line 51 "parser.ypp"
     { parserReduceHandler.reduceFormalDeclaration((yyval), (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)])); ;}
     break;
 
   case 16:
-#line 59 "parser.ypp"
+#line 58 "parser.ypp"
     { parserReduceHandler.openScope(); ;}
     break;
 
   case 17:
-#line 59 "parser.ypp"
+#line 58 "parser.ypp"
     { parserReduceHandler.closeScope(); ;}
     break;
 
   case 18:
-#line 61 "parser.ypp"
+#line 60 "parser.ypp"
     { parserReduceHandler.reduceVariableDeclarationStatement((yyvsp[(1) - (3)]), (yyvsp[(2) - (3)])); ;}
     break;
 
   case 19:
-#line 63 "parser.ypp"
+#line 62 "parser.ypp"
     {	parserReduceHandler.reduceAssignedVariableDeclarationStatement((yyvsp[(1) - (5)]), (yyvsp[(2) - (5)]), (yyvsp[(4) - (5)])); ;}
     break;
 
   case 20:
-#line 65 "parser.ypp"
+#line 64 "parser.ypp"
     { parserReduceHandler.reduceAssignedVariableStatement((yyvsp[(1) - (4)]), (yyvsp[(3) - (4)])); ;}
     break;
 
   case 22:
-#line 68 "parser.ypp"
+#line 67 "parser.ypp"
     { parserReduceHandler.reduceVoidReturn(); ;}
     break;
 
   case 23:
-#line 69 "parser.ypp"
+#line 68 "parser.ypp"
     { parserReduceHandler.reduceReturn((yyvsp[(2) - (3)])); ;}
     break;
 
   case 24:
-#line 71 "parser.ypp"
+#line 70 "parser.ypp"
     { parserReduceHandler.closeScope(); ;}
     break;
 
   case 25:
-#line 72 "parser.ypp"
+#line 71 "parser.ypp"
     { parserReduceHandler.closeScope(); parserReduceHandler.openScope(); ;}
     break;
 
   case 26:
-#line 72 "parser.ypp"
+#line 71 "parser.ypp"
     { parserReduceHandler.closeScope(); ;}
     break;
 
   case 27:
-#line 74 "parser.ypp"
+#line 73 "parser.ypp"
     { parserReduceHandler.handleWhileAfterScope(); ;}
     break;
 
   case 28:
-#line 75 "parser.ypp"
+#line 74 "parser.ypp"
     { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); ;}
     break;
 
   case 29:
-#line 75 "parser.ypp"
+#line 74 "parser.ypp"
     { parserReduceHandler.closeScope(); ;}
     break;
 
   case 30:
-#line 77 "parser.ypp"
+#line 76 "parser.ypp"
     { parserReduceHandler.reduceBreak(); ;}
     break;
 
   case 31:
-#line 78 "parser.ypp"
+#line 77 "parser.ypp"
     { parserReduceHandler.reduceContinue(); ;}
     break;
 
   case 32:
-#line 81 "parser.ypp"
+#line 80 "parser.ypp"
     { parserReduceHandler.reduceCall((yyval), (yyvsp[(1) - (4)]), (yyvsp[(3) - (4)])); ;}
     break;
 
   case 33:
-#line 83 "parser.ypp"
+#line 82 "parser.ypp"
     { parserReduceHandler.reduceNoArgumentsCall((yyval), (yyvsp[(1) - (3)])); ;}
     break;
 
   case 34:
-#line 86 "parser.ypp"
+#line 85 "parser.ypp"
     { parserReduceHandler.reduceExpressionList((yyval), (yyvsp[(1) - (1)])); ;}
     break;
 
   case 35:
-#line 88 "parser.ypp"
+#line 87 "parser.ypp"
     { parserReduceHandler.reduceExpressionList((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)])); ;}
     break;
 
   case 36:
-#line 91 "parser.ypp"
+#line 90 "parser.ypp"
     { parserReduceHandler.reduceIntType((yyval)); ;}
     break;
 
   case 37:
-#line 92 "parser.ypp"
+#line 91 "parser.ypp"
     { parserReduceHandler.reduceByteType((yyval)); ;}
     break;
 
   case 38:
-#line 93 "parser.ypp"
+#line 92 "parser.ypp"
     { parserReduceHandler.reduceBoolType((yyval)); ;}
     break;
 
   case 39:
-#line 96 "parser.ypp"
+#line 95 "parser.ypp"
     { parserReduceHandler.reduceInParenthesesExpression((yyval), (yyvsp[(2) - (3)])); ;}
     break;
 
   case 40:
-#line 98 "parser.ypp"
+#line 97 "parser.ypp"
     { parserReduceHandler.reduceBinopExpression((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)])); ;}
     break;
 
   case 41:
-#line 100 "parser.ypp"
+#line 99 "parser.ypp"
     { parserReduceHandler.reduceBinopExpression((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)])); ;}
     break;
 
   case 42:
-#line 102 "parser.ypp"
+#line 101 "parser.ypp"
     { parserReduceHandler.reduceVariableExpression((yyval), (yyvsp[(1) - (1)])); ;}
     break;
 
   case 43:
-#line 104 "parser.ypp"
+#line 103 "parser.ypp"
     { parserReduceHandler.reduceCallExpression((yyval), (yyvsp[(1) - (1)])); ;}
     break;
 
   case 44:
-#line 106 "parser.ypp"
+#line 105 "parser.ypp"
     { parserReduceHandler.reduceNumExpression((yyval), (yyvsp[(1) - (1)])); ;}
     break;
 
   case 45:
-#line 108 "parser.ypp"
+#line 107 "parser.ypp"
     { parserReduceHandler.reduceByteNumExpression((yyval), (yyvsp[(1) - (2)])); ;}
     break;
 
   case 46:
-#line 110 "parser.ypp"
+#line 109 "parser.ypp"
     { parserReduceHandler.reduceStringExpression((yyval)); ;}
     break;
 
   case 47:
-#line 112 "parser.ypp"
+#line 111 "parser.ypp"
     { parserReduceHandler.reduceTrueExpression((yyval)); ;}
     break;
 
   case 48:
-#line 114 "parser.ypp"
+#line 113 "parser.ypp"
     { parserReduceHandler.reduceFalseExpression((yyval)); ;}
     break;
 
   case 49:
-#line 116 "parser.ypp"
+#line 115 "parser.ypp"
     { parserReduceHandler.reduceNotExpression((yyval), (yyvsp[(2) - (2)])); ;}
     break;
 
   case 50:
-#line 118 "parser.ypp"
+#line 117 "parser.ypp"
     { parserReduceHandler.reduceLogicalBinopExpression((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)])); ;}
     break;
 
   case 51:
-#line 120 "parser.ypp"
+#line 119 "parser.ypp"
     { parserReduceHandler.reduceLogicalBinopExpression((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)])); ;}
     break;
 
   case 52:
-#line 122 "parser.ypp"
+#line 121 "parser.ypp"
     { parserReduceHandler.reduceRelopExpression((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)])); ;}
     break;
 
   case 53:
-#line 124 "parser.ypp"
+#line 123 "parser.ypp"
     { parserReduceHandler.reduceRelopExpression((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)])); ;}
     break;
 
   case 54:
-#line 127 "parser.ypp"
+#line 126 "parser.ypp"
     { parserReduceHandler.handleIfBeforeScope((yyvsp[(3) - (4)])); ;}
     break;
 
   case 55:
-#line 130 "parser.ypp"
+#line 129 "parser.ypp"
     { parserReduceHandler.handleWhileBeforeScope((yyvsp[(3) - (4)])); ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1732 "parser.tab.cpp"
+#line 1731 "parser.tab.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1942,7 +1941,7 @@ yyreturn:
 }
 
 
-#line 133 "parser.ypp"
+#line 132 "parser.ypp"
 
 
 int main()
