@@ -93,6 +93,30 @@ CallNodePtr NodeCaster::castCall(NodePtr node) const
 	return callNode;
 }
 
+FormalDeclarationNodePtr NodeCaster::castFormalDecl(NodePtr node) const
+{
+	auto formalDeclarationNode = dynamic_pointer_cast<FormalDeclarationNode>(node);
+
+	if (formalDeclarationNode == nullptr)
+	{
+		exitWithCastError(node->getLineNumber(), "formal declaration");
+	}
+
+	return formalDeclarationNode;
+}
+
+FormalsNodePtr NodeCaster::castFormals(NodePtr node) const
+{
+	auto formalsNode = dynamic_pointer_cast<FormalsNode>(node);
+
+	if (formalsNode == nullptr)
+	{
+		exitWithCastError(node->getLineNumber(), "formals");
+	}
+
+	return formalsNode;
+}
+
 void NodeCaster::exitWithCastError(int lineNumber, const std::string& expectedTypeStr) const
 {
 	cout << "Expected " << expectedTypeStr << " in line number " << lineNumber << endl;

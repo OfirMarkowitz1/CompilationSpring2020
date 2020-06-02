@@ -5,5 +5,5 @@
 class CallNodeFactory
 {
 public:		
-	CallNodePtr create(TType returnType, IdentifierNodePtr identifier) const;
+	CallNodePtr create(int lineNumber, TType returnType) const;
 };

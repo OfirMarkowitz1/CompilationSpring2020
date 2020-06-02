@@ -1,7 +1,7 @@
 #include "CallNodeFactory.hpp"
 #include <memory>
 
-CallNodePtr CallNodeFactory::create(TType returnType, IdentifierNodePtr identifier) const
+CallNodePtr CallNodeFactory::create(int lineNumber, TType returnType) const
 {
-	return std::make_shared<CallNode>(returnType, identifier);
+	return std::make_shared<CallNode>(lineNumber, returnType);
 }

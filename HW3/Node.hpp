@@ -3,8 +3,10 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <functional>
+#include <list>
+#include <set>
 #include "TType.h"
+#include "FunctionArgumentData.hpp"
 
 class Node;
 typedef std::shared_ptr<Node> NodePtr;
@@ -26,6 +28,12 @@ typedef std::shared_ptr<ExpressionListNode> ExpressionListNodePtr;
 
 class CallNode;
 typedef std::shared_ptr<CallNode> CallNodePtr;
+
+class FormalDeclarationNode;
+typedef std::shared_ptr<FormalDeclarationNode> FormalDeclarationNodePtr;
+
+class FormalsNode;
+typedef std::shared_ptr<FormalsNode> FormalsNodePtr;
 
 #define YYSTYPE NodePtr
 
@@ -96,7 +104,10 @@ public:
 
     void assertAssignAllowed(TType type) const;
 
+    bool isAssignAllowed(TType type) const;
+
 private:
+
 	void exitWithMismatchError() const;
 };
 
@@ -106,26 +117,54 @@ public:
 	ExpressionListNode(ExpressionNodePtr first);
     virtual ~ExpressionListNode();
 
-    void append(ExpressionNodePtr expression);
+    void pushFront(ExpressionNodePtr expression);
 
-    void assertCall(int callLineNumber, const std::string& callId, const std::vector<TType>& argTypes) const;
+    void assertCall(int callIdLineNumber, const std::string& callId, const std::vector<TType>& argTypes) const;
+
+    static void assertNoArgumentsCall(int callIdLineNumber, const std::string& callId, const std::vector<TType>& argTypes);
 
 private:
-     std::function<void()> getExitWithPrototypeMismatchErrorClosure(
-        int callLineNumber, const std::string& callId, const std::vector<TType>& argTypes
-    ) const;
+    static void exitWithPrototypeMismatchError(int lineNumber, const std::string& callId, const std::vector<TType>& argTypes);
 
-	std::vector<ExpressionNodePtr> _expressionList;
+	std::list<ExpressionNodePtr> _expressionList;
 };
 
 class CallNode : public TypedNode
 {
 public:
-    CallNode(TType type, IdentifierNodePtr identifierNode);
+    CallNode(int lineNumber, TType type);
     virtual ~CallNode();
+};
+
+class FormalDeclarationNode : public TypedNode
+{
+public:
+    FormalDeclarationNode(int lineNumber, TType type, const std::string& id);
+    virtual ~FormalDeclarationNode();
 
     const std::string& getId() const;
 
 private:
-    IdentifierNodePtr _identifierNode;
+    const std::string _id;
+};
+
+class FormalsNode : public Node
+{
+public:
+    FormalsNode(int lineNumber);
+    virtual ~FormalsNode();
+
+    void pushFront(FormalDeclarationNodePtr formalDeclarationNode);
+
+    std::vector<FunctionArgumentDataPtr> getArguments() const;
+
+    std::vector<TType> getArgTypes() const;
+
+    void assertIdDoesNotExist(int lineNumber, const std::string& id) const;
+
+private:
+
+    std::list<FunctionArgumentDataPtr> _arguments;
+
+    std::set<std::string> _argumentsIds;
 };

@@ -12,6 +12,8 @@ public:
 	ExpressionNodePtr castExpression(NodePtr node) const;
 	ExpressionListNodePtr castExpressionList(NodePtr node) const;
 	CallNodePtr castCall(NodePtr node) const;
+	FormalDeclarationNodePtr castFormalDecl(NodePtr node) const;
+	FormalsNodePtr castFormals(NodePtr node) const;
 
 private:
 	void exitWithCastError(int lineNumber, const std::string& expectedTypeStr) const;

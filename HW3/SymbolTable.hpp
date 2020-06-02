@@ -27,18 +27,19 @@ public:
 	void add(const std::string& id, TType type);
 
 	VariableEntryPtr find(const std::string& id) const;
+	
+	bool contains(const std::string& id) const;
 
 	void pushRegularScope();
-	void pushFunctionScope(const std::vector<FunctionArgumentData>& arguments);
+	void pushFunctionScope(const std::vector<FunctionArgumentDataPtr>& arguments);
 
 	ConstVariablesScopePtr popScope();
 
 private:
-	bool contains(const std::string& id) const;
 
 	void assertScopesStackNotEmpty(const std::string& actionDescription) const;
 
-	std::stack<VariablesScope> _scopesStack;
+	std::stack<VariablesScopePtr> _scopesStack;
 	
 	std::unordered_map< std::string, VariableEntryPtr > _varIdToEntryMap;
 };
@@ -47,7 +48,7 @@ class VariablesScope
 {
 public:
 	VariablesScope(int startingOffset);
-	VariablesScope(const std::vector<FunctionArgumentData>& arguments);
+	VariablesScope(const std::vector<FunctionArgumentDataPtr>& arguments);
 
 	void add(VariableEntryPtr entry);
 
@@ -58,6 +59,9 @@ public:
 	int getCurrentOffset() const;	
 
 private:
+
+	void assertScopeHasEnoughEntries() const;
+
 	std::vector<VariableEntryPtr> _entries;
 
 	int _startingOffset;
@@ -66,7 +70,7 @@ private:
 class GlobalScopeFunctionsTable
 {
 public:
-	GlobalScopeSymbolTable();
+	GlobalScopeFunctionsTable();
 
 	void add(const std::string& id, TType retType, const std::vector<TType>& argTypes);
 
@@ -87,7 +91,7 @@ class SymbolEntry
 protected:
 	SymbolEntry(const std::string& id);
 
-	const std::string _id
+    const std::string _id;
 };
 
 class VariableEntry : public SymbolEntry
@@ -97,7 +101,7 @@ public:
 
 	TType getType() const;
 
-	void print() const;
+	void print(int offset) const;
 
 private:
 	const TType _varType;
@@ -110,7 +114,7 @@ public:
 
 	TType getRetType() const;
 
-	const std::std::vector<TType>& getArgTypes() const;
+	const std::vector<TType>& getArgTypes() const;
 
 	void print() const;
 
@@ -119,4 +123,4 @@ private:
 	const std::vector<TType> _argTypes;
 
 	static const int OFFSET;
-}
+};

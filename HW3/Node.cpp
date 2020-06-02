@@ -1,6 +1,6 @@
 #include "Node.hpp"
 #include "hw3_output.hpp"
-#include 
+#include "FunctionArgumentData.hpp"
 
 using namespace std;
 
@@ -105,11 +105,16 @@ void ExpressionNode::assertNumeric() const
 
 void ExpressionNode::assertAssignAllowed(TType type) const
 {
-	if (((type != T_INT) && (_type != type)) ||
-		((type == T_INT) && ((_type != T_INT) && (_type != T_BYTE))))
+	if (!isAssignAllowed(type))
 	{
 		exitWithMismatchError();
 	}
+}
+
+bool ExpressionNode::isAssignAllowed(TType type) const
+{
+	return (((type != T_INT) && (_type == type)) ||
+			((type == T_INT) && ((_type == T_INT) || (_type == T_BYTE))));
 }
 
 void ExpressionNode::exitWithMismatchError() const
@@ -128,43 +133,48 @@ ExpressionListNode::~ExpressionListNode()
 {
 }
 
-void ExpressionListNode::append(ExpressionNodePtr expression)
+void ExpressionListNode::pushFront(ExpressionNodePtr expression)
 {
-	_expressionList.push_back(expression);
+	_expressionList.push_front(expression);
 }
 
-void ExpressionListNode::assertCall(int callLineNumber, const std::string& callId, const std::vector<TType>& argTypes) const
+void ExpressionListNode::assertCall(int callIdLineNumber, const std::string& callId, const std::vector<TType>& argTypes) const
 {
-	function<void()> exitWithPrototypeMismatchErrorClosure =
-		getExitWithPrototypeMismatchErrorClosure(callLineNumber, callId, argTypes);
-
 	if (_expressionList.size() != argTypes.size())
 	{
-		exitWithPrototypeMismatchErrorClosure();
+		exitWithPrototypeMismatchError(callIdLineNumber, callId, argTypes);
 	}
 
-	for (int i = 0; i < _expressionList.size; i++)
-	{
-		if (_expressionList[i]->getType() != argTypes[i])
+	auto expressionListIter = _expressionList.begin();
+	auto argTypesIter = argTypes.begin();
+
+	for (;(expressionListIter != _expressionList.end()) && (argTypesIter != argTypes.end());
+		 ++expressionListIter, ++argTypesIter)
+	{	
+		if ((*expressionListIter)->isAssignAllowed(*argTypesIter))
 		{
-			exitWithPrototypeMismatchErrorClosure();
+			exitWithPrototypeMismatchError((*expressionListIter)->getLineNumber(), callId, argTypes);
 		}	
 	}
 }
 
-std::function<void()> ExpressionListNode::getExitWithPrototypeMismatchErrorClosure(
-        int callLineNumber, const std::string& callId, const std::vector<TType>& argTypes
-    ) const
+void ExpressionListNode::assertNoArgumentsCall(int callIdLineNumber, const std::string& callId, const std::vector<TType>& argTypes)
 {
-	return [&]() {
-		output::errorPrototypeMismatch(callLineNumber, callId, getTTypesStrings(argTypes));
-		exit(1);
-	};
+	if (!argTypes.empty())
+	{
+		exitWithPrototypeMismatchError(callIdLineNumber, callId, argTypes);
+	}
 }
 
-CallNode::CallNode(TType type, IdentifierNodePtr identifierNode) :
-TypedNode(identifierNode->getLineNumber(), type),
-_identifierNode(identifierNode)
+void ExpressionListNode::exitWithPrototypeMismatchError(int lineNumber, const std::string& callId, const std::vector<TType>& argTypes)
+{
+		vector<string> typesStrings = getTTypesStrings(argTypes);
+		output::errorPrototypeMismatch(lineNumber, callId, typesStrings);
+		exit(1);
+}
+
+CallNode::CallNode(int lineNumber, TType type) :
+TypedNode(lineNumber, type)
 {
 }
 
@@ -172,8 +182,64 @@ CallNode::~CallNode()
 {
 }
 
-const std::string& CallNode::getId() const
+FormalDeclarationNode::FormalDeclarationNode(int lineNumber, TType type, const std::string& id) :
+TypedNode(lineNumber, type),
+_id(id)
 {
-	return _identifierNode->getValue();
 }
 
+FormalDeclarationNode::~FormalDeclarationNode()
+{
+}
+
+const std::string& FormalDeclarationNode::getId() const
+{
+	return _id;
+}
+
+FormalsNode::FormalsNode(int lineNumber) :
+Node(lineNumber)
+{
+}
+
+FormalsNode::~FormalsNode()
+{
+}
+
+void FormalsNode::pushFront(FormalDeclarationNodePtr formalDeclarationNode)
+{
+	_arguments.emplace_front(formalDeclarationNode->getId(), formalDeclarationNode->getType());
+}
+
+std::vector<FunctionArgumentDataPtr> FormalsNode::getArguments() const
+{
+	vector<FunctionArgumentDataPtr> argumentsVec;
+	
+	for (const auto& argument : _arguments)
+	{
+		argumentsVec.push_back(argument);
+	}
+
+	return argumentsVec;
+}
+
+std::vector<TType> FormalsNode::getArgTypes() const
+{
+	vector<TType> argTypes;
+
+	for (const auto& argument : _arguments)
+	{
+		argTypes.push_back(argument->getType());
+	}
+
+	return argTypes;
+}
+
+void FormalsNode::assertIdDoesNotExist(int lineNumber, const std::string& id) const
+{
+	if (_argumentsIds.find(id) != _argumentsIds.end())
+	{
+		output::errorDef(lineNumber, id);
+		exit(1);
+	}
+}

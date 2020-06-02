@@ -1,34 +1,13 @@
 %{
 	#include <stdlib.h>
     #include <iostream>
-    
 	#include "hw3_output.hpp"
-
-	#include "SymbolTable.hpp"
-	#include "SymbolTableAsserter.hpp"
-
-    #include "Node.hpp"
-    #include "NodeCaster.hpp"
-
-    #include "TypeNodeFactory.hpp"
-    #include "ExpressionNodeFactory.hpp"
-    #include "CallNodeFactory.hpp"
-
-    using namespace std;
-
-	extern int yylineno;
+    #include "ParserReduceHandler.hpp"
+    
 	extern int yylex();
 	void yyerror(const char*);
-
-	VariablesTable variablesTable;
-	GlobalScopeFunctionsTable functionsTable;
-
-	SymbolTableAsserter symbolTableAsserter(variablesTable, functionsTable);
-
-	NodeCaster nodeCaster;
-	TypeNodeFactory typeNodeFactory;
-	ExpressionNodeFactory expressionNodeFactory;
-	CallNodeFactory callNodeFactory;
+    
+    ParserReduceHandler parserReduceHandler;
 %}
 
 %token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE COMMA ID NUM STRING LBRACE RBRACE LPAREN RPAREN SC
@@ -45,149 +24,105 @@
 
 %%
 
-Program			:	Funcs { symbolTableAsserter.assertMainFunctionDefined(); }
+Program			:	Funcs { parserReduceHandler.reduceProgram(); }
                 ;
 		
-Funcs			: 	/* empty */    {}
-				|	FuncDecl Funcs {}
+Funcs			: 	/* empty */
+				|	FuncDecl Funcs
                 ;
 		
-FuncDecl		: 	RetType ID LPAREN Formals RPAREN LBRACE Statements RBRACE {
-						auto identifierNode = nodeCaster.castIdentifier($1);
-						symbolTableAsserter.assertFunctionUndefined(identifierNode->getValue());
-
-					}
+FuncDecl		: 	RetType ID LPAREN Formals RPAREN LBRACE { parserReduceHandler.addFunctionAndOpenScope($1, $2, $4); } Statements RBRACE { parserReduceHandler.closeScope(); }
                 ;
 
-RetType			:	Type { $$ = $1 }
-				|	VOID { $$ = typeNodeFactory.createVoid(yylineno); }
+RetType			:	Type { parserReduceHandler.reduceReturnType($$, $1); }
+				|	VOID { parserReduceHandler.reduceVoidReturnType($$); }
                 ;
 
-Formals			:	/* empty */ {}
-				|	FormalsList {}
+Formals			:	/* empty */ { parserReduceHandler.reduceEmptyFormals($$); }
+				|	FormalsList { parserReduceHandler.reduceFormals($$, $1); }
                 ;
 
-FormalsList		:	FormalDecl {}
-				|	FormalDecl COMMA FormalsList {}
+FormalsList		:	FormalDecl { parserReduceHandler.reduceFormalsList($$, $1); }
+				|	FormalDecl COMMA FormalsList { parserReduceHandler.reduceFormalsList($$, $1, $3); }
                 ;
 
-FormalDecl 		:	Type ID {}
+FormalDecl 		:	Type ID { parserReduceHandler.reduceFormalDeclaration($$, $1, $2); }
                 ;
 			
-Statements		:	Statement {}
-				|	Statements Statement {}
+Statements		:	Statement
+				|	Statements Statement
                 ;
       
-Statement	    :	LBRACE Statements RBRACE {}
+Statement	    :	LBRACE { parserReduceHandler.openScope(); } Statements RBRACE { parserReduceHandler.closeScope(); }
 
-				|	Type ID SC { 	TType varType = nodeCaster.castType($1)->getType();
-									string varIdentifier = nodeCaster.castIdentifier($2)->getValue();
-									/* Insert to symbol table */ }
+				|	Type ID SC { parserReduceHandler.reduceVariableDeclarationStatement($1, $2); }
 
-				|	Type ID ASSIGN Exp SC {	TType varType = nodeCaster.castType($1)->getType();
-											nodeCaster.castExpression($4)->assertAssignAllowed(varType);
-											/* 	In case of type miss match - need to make sure line number 
-												of expression is ok (maybe we need to use line number of the type?)	*/
-											string varIdentifier = nodeCaster.castIdentifier($2)->getValue();
-											/* Insert to symbol table */ }
+				|	Type ID ASSIGN Exp SC {	parserReduceHandler.reduceAssignedVariableDeclarationStatement($1, $2, $4); }
 
-				|	ID ASSIGN Exp SC { 	string varIdentifier = nodeCaster.castIdentifier($1)->getValue();
-										/* 	varType - Infer type from symbol table 
-											nodeCaster.castExpression($3)->assertAssignAllowed(varType); 
-										   	In case of type miss match - need to make sure line number
-										   	of expression is ok (maybe we need to use line number of the identifier?) */ }
+				|	ID ASSIGN Exp SC { parserReduceHandler.reduceAssignedVariableStatement($1, $3); }
 
-				| 	Call SC {}
-				|	RETURN SC {}
-				|	RETURN Exp SC {}
-				|	IF LPAREN Exp RPAREN Statement %prec COND_WITHOUT_ELSE {}
-				| 	IF LPAREN Exp RPAREN Statement ELSE Statement {}
-				|	WHILE LPAREN Exp RPAREN Statement %prec COND_WITHOUT_ELSE {}
-				|	WHILE LPAREN Exp RPAREN Statement ELSE Statement {}
-				|	BREAK SC {}
-				|	CONTINUE SC {}
+				| 	Call SC
+				|	RETURN SC { parserReduceHandler.reduceVoidReturn(); }
+				|	RETURN Exp SC { parserReduceHandler.reduceReturn($2); }
+
+                |	IF LPAREN Exp RPAREN { parserReduceHandler.handleIfBeforeScope($3); } Statement %prec COND_WITHOUT_ELSE { parserReduceHandler.closeScope(); }
+
+				| 	IF LPAREN Exp RPAREN { parserReduceHandler.handleIfBeforeScope($3); } Statement ELSE { parserReduceHandler.closeScope(); parserReduceHandler.openScope(); }
+					Statement { parserReduceHandler.closeScope(); }
+
+                |	WHILE LPAREN Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3); } Statement %prec COND_WITHOUT_ELSE { parserReduceHandler.handleWhileAfterScope(); }
+
+            	|	WHILE LPAREN Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3); } Statement ELSE { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); }
+            		Statement { parserReduceHandler.closeScope(); }
+
+				|	BREAK SC { parserReduceHandler.reduceBreak(); }
+				|	CONTINUE SC { parserReduceHandler.reduceContinue(); }
                 ;
 			
-Call			: 	ID LPAREN ExpList RPAREN {	auto identifier = nodeCaster.castIdentifier($1);
-												auto expressionList = nodeCaster.castExpressionList($3);
-												$$ = callNodeFactory.create(T_INT, identifier); 
-												/* Use identifier to infer function type!!! */ }
+Call			: 	ID LPAREN ExpList RPAREN { parserReduceHandler.reduceCall($$, $1, $3); }
 
-				| 	ID LPAREN RPAREN {	auto identifier = nodeCaster.castIdentifier($1);
-										$$ = callNodeFactory.create(T_INT, identifier);
-										/* Use identifier to infer function type!!! */ }
+				| 	ID LPAREN RPAREN { parserReduceHandler.reduceNoArgumentsCall($$, $1); }
                 ;
 			
-ExpList			: 	Exp {	auto firstExpression = nodeCaster.castExpression($1); 
-							$$ = expressionNodeFactory.createList(firstExpression); }
+ExpList			: 	Exp { parserReduceHandler.reduceExpressionList($$, $1); }
 
-				| 	Exp COMMA ExpList { auto expression = nodeCaster.castExpression($1);
-										auto expressionList = nodeCaster.castExpressionList($3);
-										expressionList->append(expression);
-										$$ = expressionList; }
+				| 	Exp COMMA ExpList { parserReduceHandler.reduceExpressionList($$, $1, $3); }
                 ;
 			
-Type			: 	INT  { 	$$ = typeNodeFactory.createInt(yylineno);  }
-				|	BYTE { 	$$ = typeNodeFactory.createByte(yylineno); }
-				|	BOOL { 	$$ = typeNodeFactory.createBool(yylineno); }
+Type			: 	INT  { parserReduceHandler.reduceIntType($$); }
+				|	BYTE { parserReduceHandler.reduceByteType($$); }
+				|	BOOL { parserReduceHandler.reduceBoolType($$); }
                 ;
 			
-Exp				:	LPAREN Exp RPAREN { $$ = $2; }
+Exp				:	LPAREN Exp RPAREN { parserReduceHandler.reduceInParenthesesExpression($$, $2); }
 
-				|	Exp ADDITIVE Exp { 	auto lhs = nodeCaster.castExpression($1);
-										auto rhs = nodeCaster.castExpression($3);
-										$$ = expressionNodeFactory.createNumericBinop(lhs, rhs); }
+				|	Exp ADDITIVE Exp { parserReduceHandler.reduceBinopExpression($$, $1, $3); }
 				
-				|	Exp MULTIPLICATIVE Exp { 	auto lhs = nodeCaster.castExpression($1);
-												auto rhs = nodeCaster.castExpression($3);
-												$$ = expressionNodeFactory.createNumericBinop(lhs, rhs); }
+				|	Exp MULTIPLICATIVE Exp { parserReduceHandler.reduceBinopExpression($$, $1, $3); }
 
-				|	ID { 	auto identifierNode = nodeCaster.castIdentifier($1);
-							const string variableId = identifierNode->getValue();
-							symbolTableAsserter.assertVariableDefined(variableId);
-							VariableEntryPtr variableEntry = variablesTable.find(identifierNode->getValue(variableId);
-							$$ = expressionNodeFactory.create(yylineno, variableEntry->getType()); }
+				|	ID { parserReduceHandler.reduceVariableExpression($$, $1); }
 
-				|	Call {	auto callNode = nodeCaster.castCall($1);
-							symbolTableAsserter.assertFunctionDefined(callNode->getId());
-							$$ = expressionNodeFactory.create(callNode->getLineNumber(), callNode->getType()); }
+				|	Call { parserReduceHandler.reduceCallExpression($$, $1); }
 
-				|	NUM { $$ = expressionNodeFactory.createInt(yylineno); }
+				|	NUM { parserReduceHandler.reduceNumExpression($$, $1); }
 
-				|	NUM B { auto numNode = nodeCaster.castNum($1);
-							numNode->assertByteValueNotTooLarge();
-							$$ = expressionNodeFactory.createByte(numNode->getLineNumber()); }
+				|	NUM B { parserReduceHandler.reduceByteNumExpression($$, $1); }
 
-				|	STRING { $$ = expressionNodeFactory.createString(yylineno);
-							 /* 
-							  * Though a string only suppose to appear in a print function call,
-							  *	because of how the syntax is structured, I believe no additional 
-							  *	check is required.
-							  */ }
+				|	STRING { parserReduceHandler.reduceStringExpression($$); }
 
-				|	TRUE { $$ = expressionNodeFactory.createBool(yylineno); }
+				|	TRUE { parserReduceHandler.reduceTrueExpression($$); }
 
-				|	FALSE { $$ = expressionNodeFactory.createBool(yylineno); }
+				|	FALSE { parserReduceHandler.reduceFalseExpression($$); }
 
-				|	NOT Exp { 	auto expression = nodeCaster.castExpression($2);
-								expression->assertBool();
-							  	$$ = expressionNodeFactory.createBool(expression->getLineNumber()); }
+				|	NOT Exp { parserReduceHandler.reduceNotExpression($$, $2); }
 
-				|	Exp AND Exp { 	auto lhs = nodeCaster.castExpression($1);
-									auto rhs = nodeCaster.castExpression($3);
-									$$ = expressionNodeFactory.createLogicalBinop(lhs, rhs); }
+				|	Exp AND Exp { parserReduceHandler.reduceLogicalBinopExpression($$, $1, $3); }
 
-				|	Exp OR Exp { 	auto lhs = nodeCaster.castExpression($1);
-									auto rhs = nodeCaster.castExpression($3);
-									$$ = expressionNodeFactory.createLogicalBinop(lhs, rhs); }
+				|	Exp OR Exp { parserReduceHandler.reduceLogicalBinopExpression($$, $1, $3); }
 
-				|	Exp RELATIONAL Exp { 	auto lhs = nodeCaster.castExpression($1);
-											auto rhs = nodeCaster.castExpression($3);
-											$$ = expressionNodeFactory.createRelop(lhs, rhs); }								
+				|	Exp RELATIONAL Exp { parserReduceHandler.reduceRelopExpression($$, $1, $3); }								
 				
-				|	Exp EQUALITY Exp { 	auto lhs = nodeCaster.castExpression($1);
-										auto rhs = nodeCaster.castExpression($3);
-										$$ = expressionNodeFactory.createRelop(lhs, rhs); }
+				|	Exp EQUALITY Exp { parserReduceHandler.reduceRelopExpression($$, $1, $3); }
                 ;
 %%
 

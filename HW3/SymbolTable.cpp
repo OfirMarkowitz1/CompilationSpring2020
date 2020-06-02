@@ -28,17 +28,17 @@ VariableEntryPtr VariablesTable::find(const std::string& id) const
 {
 	auto varIdToEntryMapIter = _varIdToEntryMap.find(id);
 
-	return (varIdToEntryMapIter != _varIdToEntryMap.end() ? varIdToEntryMapIter->second : nullptr)
+	return (varIdToEntryMapIter != _varIdToEntryMap.end() ? varIdToEntryMapIter->second : nullptr);
 }
 
 void VariablesTable::pushRegularScope()
 {
-	const int startingOffset = (_scopesStack.empty() ? 0 : _scopesStack.top()->getCurrentOffset());
+	assertScopesStackNotEmpty("push non function scope");
 
-	_scopesStack.push(make_shared<VariablesScope>(startingOffset));
+	_scopesStack.push(make_shared<VariablesScope>(_scopesStack.top()->getCurrentOffset()));
 }
 
-void VariablesTable::pushFunctionScope(const std::vector<FunctionArgumentData>& arguments)
+void VariablesTable::pushFunctionScope(const std::vector<FunctionArgumentDataPtr>& arguments)
 {
 	_scopesStack.push(make_shared<VariablesScope>(arguments));
 }
@@ -68,12 +68,12 @@ _startingOffset(startingOffset)
 {
 }
 
-VariablesScope::VariablesScope(const std::vector<FunctionArgumentData>& arguments) :
+VariablesScope::VariablesScope(const std::vector<FunctionArgumentDataPtr>& arguments) :
 _startingOffset(-arguments.size())
 {
-	for (auto reverseIter = arguments.rbegin(); reverseIter != arguments.rend(); ++reverseIter)
+	for (const auto& argument : arguments)
 	{
-		add(make_shared<VariableEntry>(reverseIter->getId(), reverseIter->getType()));
+		add(make_shared<VariableEntry>(argument->getId(), argument->getType()));
 	}
 }
 
@@ -84,11 +84,18 @@ void VariablesScope::add(VariableEntryPtr entry)
 
 void VariablesScope::print() const
 {
-	int currOffset = _startingOffset;
+	assertScopeHasEnoughEntries();
 
-	for (const VariableEntryPtr& entry : _entries)
+	auto entriesIter = _entries.begin();
+
+	for (int currNegativeOffset = -1; currNegativeOffset >= _startingOffset; --currNegativeOffset, ++entriesIter)
 	{
-		entry->print(currOffset++);
+		(*entriesIter)->print(currNegativeOffset);
+	}
+
+	for (int currOffset = 0; entriesIter != _entries.end(); ++currOffset, ++entriesIter)
+	{
+		(*entriesIter)->print(currOffset);
 	}
 }
 
@@ -97,7 +104,16 @@ int VariablesScope::getCurrentOffset() const
 	return _startingOffset + _entries.size();
 }
 
-GlobalScopeFunctionsTable::GlobalScopeSymbolTable()
+void VariablesScope::assertScopeHasEnoughEntries() const
+{
+	if (_entries.size() >= -_startingOffset)
+	{
+		cout << "Not enough entries scope" << endl;
+		exit(1);
+	}
+}
+
+GlobalScopeFunctionsTable::GlobalScopeFunctionsTable()
 {
 }
 
@@ -166,14 +182,17 @@ TType FunctionEntry::getRetType() const
 	return _retType;
 }
 
-const std::std::vector<TType>& FunctionEntry::getArgTypes() const
+const std::vector<TType>& FunctionEntry::getArgTypes() const
 {
 	return _argTypes;
 }
 
 void FunctionEntry::print() const
 {
-	const string functionTypeString = output::makeFunctionType(_retType, getTTypesStrings(_argTypes));
+	vector<string> typesStrings = getTTypesStrings(_argTypes);
+	const string retTypeString = getTTypeString(_retType);
+
+	const string functionTypeString = output::makeFunctionType(retTypeString, typesStrings);
 
 	output::printID(_id, OFFSET, functionTypeString);
 }
