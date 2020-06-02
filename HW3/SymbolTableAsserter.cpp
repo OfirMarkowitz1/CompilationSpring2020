@@ -32,7 +32,7 @@ void SymbolTableAsserter::assertFunctionDefined(const std::string& id, int lineN
 
 void SymbolTableAsserter::assertIdentifierUndefined(const std::string& id, int lineNumber) const
 {
-	if (_variablesTable.contains(id))
+	if (_variablesTable.contains(id) || _functionsTable.contains(id))
 	{
 		output::errorDef(lineNumber, id);
 		exit(1);

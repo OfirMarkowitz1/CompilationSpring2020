@@ -4,6 +4,8 @@
 	#include "hw3_output.hpp"
     #include "ParserReduceHandler.hpp"
     
+    #define YYINITDEPTH 10000
+    
     extern int yylineno;
 	extern int yylex();
 	void yyerror(const char*);
