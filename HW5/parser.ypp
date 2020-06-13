@@ -1,0 +1,142 @@
+%{
+	#include <stdlib.h>
+	#include "hw3_output.hpp"
+    #include "ParserReduceHandler.hpp"
+    
+    #define YYINITDEPTH 10000
+    
+    extern int yylineno;
+	extern int yylex();
+	void yyerror(const char*);
+    
+    ParserReduceHandler parserReduceHandler;
+%}
+
+%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE COMMA ID NUM STRING LBRACE RBRACE LPAREN RPAREN SC
+%nonassoc COND_WITHOUT_ELSE
+%nonassoc ELSE
+%right ASSIGN
+%left OR
+%left AND
+%left EQUALITY
+%nonassoc RELATIONAL
+%left ADDITIVE
+%left MULTIPLICATIVE
+%right NOT
+
+%%
+
+Program			:	Funcs { parserReduceHandler.reduceProgram(); }
+                ;
+		
+Funcs			: 	/* empty */
+				|	FuncDecl Funcs
+                ;
+		
+FuncDecl		: 	RetType ID LPAREN Formals RPAREN LBRACE { parserReduceHandler.addFunctionAndOpenScope($1, $2, $4); } Statements RBRACE { parserReduceHandler.closeScope(); }
+                ;
+
+RetType			:	Type { parserReduceHandler.reduceReturnType($$, $1); }
+				|	VOID { parserReduceHandler.reduceVoidReturnType($$); }
+                ;
+
+Formals			:	/* empty */ { parserReduceHandler.reduceEmptyFormals($$); }
+				|	FormalsList { parserReduceHandler.reduceFormals($$, $1); }
+                ;
+
+FormalsList		:	FormalDecl { parserReduceHandler.reduceFormalsList($$, $1); }
+				|	FormalDecl COMMA FormalsList { parserReduceHandler.reduceFormalsList($$, $1, $3); }
+                ;
+
+FormalDecl 		:	Type ID { parserReduceHandler.reduceFormalDeclaration($$, $1, $2); }
+                ;
+			
+Statements		:	Statement
+				|	Statements Statement
+                ;
+      
+Statement	    :	LBRACE { parserReduceHandler.openScope(); } Statements RBRACE { parserReduceHandler.closeScope(); }
+
+				|	Type ID SC { parserReduceHandler.reduceVariableDeclarationStatement($1, $2); }
+
+				|	Type ID ASSIGN Exp SC {	parserReduceHandler.reduceAssignedVariableDeclarationStatement($1, $2, $4); }
+
+				|	ID ASSIGN Exp SC { parserReduceHandler.reduceAssignedVariableStatement($1, $3); }
+
+				| 	Call SC
+				|	RETURN SC { parserReduceHandler.reduceVoidReturn(); }
+				|	RETURN Exp SC { parserReduceHandler.reduceReturn($2); }
+
+                |	IfBase Statement { parserReduceHandler.closeScope(); } %prec COND_WITHOUT_ELSE
+				| 	IfBase Statement ELSE { parserReduceHandler.closeScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); }
+
+                |	WhileBase Statement { parserReduceHandler.handleWhileAfterScope(); } %prec COND_WITHOUT_ELSE
+            	|	WhileBase Statement ELSE { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); }
+
+				|	BREAK SC { parserReduceHandler.reduceBreak(); }
+				|	CONTINUE SC { parserReduceHandler.reduceContinue(); }
+                ;
+			
+Call			: 	ID LPAREN ExpList RPAREN { parserReduceHandler.reduceCall($$, $1, $3); }
+
+				| 	ID LPAREN RPAREN { parserReduceHandler.reduceNoArgumentsCall($$, $1); }
+                ;
+			
+ExpList			: 	Exp { parserReduceHandler.reduceExpressionList($$, $1); }
+
+				| 	Exp COMMA ExpList { parserReduceHandler.reduceExpressionList($$, $1, $3); }
+                ;
+			
+Type			: 	INT  { parserReduceHandler.reduceIntType($$); }
+				|	BYTE { parserReduceHandler.reduceByteType($$); }
+				|	BOOL { parserReduceHandler.reduceBoolType($$); }
+                ;
+			
+Exp				:	LPAREN Exp RPAREN { parserReduceHandler.reduceInParenthesesExpression($$, $2); }
+
+				|	Exp ADDITIVE Exp { parserReduceHandler.reduceBinopExpression($$, $1, $3); }
+				
+				|	Exp MULTIPLICATIVE Exp { parserReduceHandler.reduceBinopExpression($$, $1, $3); }
+
+				|	ID { parserReduceHandler.reduceVariableExpression($$, $1); }
+
+				|	Call { parserReduceHandler.reduceCallExpression($$, $1); }
+
+				|	NUM { parserReduceHandler.reduceNumExpression($$, $1); }
+
+				|	NUM B { parserReduceHandler.reduceByteNumExpression($$, $1); }
+
+				|	STRING { parserReduceHandler.reduceStringExpression($$); }
+
+				|	TRUE { parserReduceHandler.reduceTrueExpression($$); }
+
+				|	FALSE { parserReduceHandler.reduceFalseExpression($$); }
+
+				|	NOT Exp { parserReduceHandler.reduceNotExpression($$, $2); }
+
+				|	Exp AND Exp { parserReduceHandler.reduceLogicalBinopExpression($$, $1, $3); }
+
+				|	Exp OR Exp { parserReduceHandler.reduceLogicalBinopExpression($$, $1, $3); }
+
+				|	Exp RELATIONAL Exp { parserReduceHandler.reduceRelopExpression($$, $1, $3); }								
+				
+				|	Exp EQUALITY Exp { parserReduceHandler.reduceRelopExpression($$, $1, $3); }
+                ;
+
+IfBase			:	IF LPAREN Exp RPAREN { parserReduceHandler.handleIfBeforeScope($3); };
+				;
+
+WhileBase		:	WHILE LPAREN Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3); };
+				;
+
+%%
+
+int main()
+{
+	return yyparse();
+}
+
+void yyerror(const char* message)
+{
+	output::errorSyn(yylineno);
+}
