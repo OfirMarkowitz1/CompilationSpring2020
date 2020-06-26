@@ -88,6 +88,8 @@ void ParserReduceHandler::reduceFormalDeclaration(NodePtr& formalDeclaration, No
 	const TType formalTType = _nodeCaster.castType(formalType)->getType();
 	const string formalIdString = _nodeCaster.castIdentifier(formalId)->getValue();
 
+	_symbolTableAsserter.assertIdentifierUndefined(formalIdString, yylineno);
+
 	formalDeclaration = _formalsNodeFactory.createFormalDecl(yylineno, formalTType, formalIdString);
 }
 
