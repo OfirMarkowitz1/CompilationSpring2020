@@ -5,16 +5,12 @@
 class ExpressionNodeFactory
 {
 public:
-	ExpressionNodePtr createInt(int lineNumber) const;
-	ExpressionNodePtr createByte(int lineNumber) const;
-	ExpressionNodePtr createBool(int lineNumber) const;
-	ExpressionNodePtr createString(int lineNumber) const;
+	NumericExpressionNodePtr createInt(int lineNumber, const std::string& varName) const;
+	NumericExpressionNodePtr createByte(int lineNumber, const std::string& varName) const;
+	BooleanExpressionNodePtr createBool(int lineNumber, const std::vector<BPItem>& trueList, const std::vector<BPItem>& falseList) const;
+	StringExpressionNodePtr createString(int lineNumber, const std::string& varName, int numBytes) const;
 
-	ExpressionNodePtr createNumericBinop(ExpressionNodePtr lhs, ExpressionNodePtr rhs) const;
-	ExpressionNodePtr createLogicalBinop(ExpressionNodePtr lhs, ExpressionNodePtr rhs) const;
-	ExpressionNodePtr createRelop(ExpressionNodePtr lhs, ExpressionNodePtr rhs) const;
-
-	ExpressionNodePtr create(int lineNumber, TType type) const;
+	NumericExpressionNodePtr createNumeric(int lineNumber, TType type, const std::string& varName) const;
 
 	ExpressionListNodePtr createList(ExpressionNodePtr first) const;
 };

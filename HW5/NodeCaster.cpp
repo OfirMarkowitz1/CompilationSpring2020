@@ -1,4 +1,5 @@
 #include "NodeCaster.hpp"
+#include "hw3_output.hpp"
 #include <memory>
 #include <iostream>
 
@@ -14,6 +15,18 @@ NumNodePtr NodeCaster::castNum(NodePtr node) const
 	}
 
 	return numNode;
+}
+
+StringNodePtr NodeCaster::castString(NodePtr node) const
+{
+	auto stringNode = dynamic_pointer_cast<StringNode>(node);
+
+	if (stringNode == nullptr)
+	{
+		exitWithCastError(node->getLineNumber(), "string");
+	}
+
+	return stringNode;
 }
 
 IdentifierNodePtr NodeCaster::castIdentifier(NodePtr node) const
@@ -69,6 +82,42 @@ ExpressionNodePtr NodeCaster::castExpression(NodePtr node) const
 	return experssionNode;
 }
 
+NumericExpressionNodePtr NodeCaster::castNumericExpression(NodePtr node) const
+{
+	auto numericExperssionNode = dynamic_pointer_cast<NumericExpressionNode>(node);
+
+	if (numericExperssionNode == nullptr)
+	{
+		exitWithMismatchError(node->getLineNumber());
+	}
+
+	return numericExperssionNode;
+}
+
+BooleanExpressionNodePtr NodeCaster::castBooleanExpression(NodePtr node) const
+{
+	auto booleanExperssionNode = dynamic_pointer_cast<BooleanExpressionNode>(node);
+
+	if (booleanExperssionNode == nullptr)
+	{
+		exitWithMismatchError(node->getLineNumber());
+	}
+
+	return booleanExperssionNode;
+}
+
+StringExpressionNodePtr NodeCaster::castStringExpression(NodePtr node) const
+{
+	auto stringExperssionNode = dynamic_pointer_cast<StringExpressionNode>(node);
+
+	if (stringExperssionNode == nullptr)
+	{
+		exitWithMismatchError(node->getLineNumber());
+	}
+
+	return stringExperssionNode;
+}
+
 ExpressionListNodePtr NodeCaster::castExpressionList(NodePtr node) const
 {
 	auto experssionListNode = dynamic_pointer_cast<ExpressionListNode>(node);
@@ -117,6 +166,42 @@ FormalsNodePtr NodeCaster::castFormals(NodePtr node) const
 	return formalsNode;
 }
 
+BinopNodePtr NodeCaster::castBinop(NodePtr node) const
+{
+	auto binopNode = dynamic_pointer_cast<BinopNode>(node);
+
+	if (binopNode == nullptr)
+	{
+		exitWithCastError(node->getLineNumber(), "binop");
+	}
+
+	return binopNode;
+}
+
+RelopNodePtr NodeCaster::castRelop(NodePtr node) const
+{
+	auto relopNode = dynamic_pointer_cast<RelopNode>(node);
+
+	if (relopNode == nullptr)
+	{
+		exitWithCastError(node->getLineNumber(), "relop");
+	}
+
+	return relopNode;
+}
+
+MarkerNodePtr NodeCaster::castMarker(NodePtr node) const
+{
+	auto markerNode = dynamic_pointer_cast<MarkerNode>(node);
+
+	if (markerNode == nullptr)
+	{
+		exitWithCastError(node->getLineNumber(), "marker");
+	}
+
+	return markerNode;
+}
+
 void NodeCaster::exitWithCastError(int lineNumber, const std::string& expectedTypeStr) const
 {
 	cout << "Expected " << expectedTypeStr << " in line number " << lineNumber << endl;
@@ -126,5 +211,11 @@ void NodeCaster::exitWithCastError(int lineNumber, const std::string& expectedTy
 void NodeCaster::exitWithVoidError(int lineNumber) const
 {
 	cout << "Expected non-void type in line " << lineNumber << endl;
+	exit(1);
+}
+
+void NodeCaster::exitWithMismatchError(int lineNumber) const
+{
+	output::errorMismatch(lineNumber);
 	exit(1);
 }

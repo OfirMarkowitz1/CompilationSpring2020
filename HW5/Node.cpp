@@ -1,6 +1,7 @@
 #include "Node.hpp"
 #include "hw3_output.hpp"
 #include "FunctionArgumentData.hpp"
+#include <iostream>
 
 using namespace std;
 
@@ -30,6 +31,11 @@ NumNode::~NumNode()
 {
 }
 
+int NumNode::getValue() const
+{
+	return _value;
+}
+
 void NumNode::assertByteValueNotTooLarge() const
 {
 	if (_value > MAX_BYTE_VALUE)
@@ -37,6 +43,21 @@ void NumNode::assertByteValueNotTooLarge() const
 		output::errorByteTooLarge(_lineNumber, to_string(_value));
 		exit(1);
 	}
+}
+
+StringNode::StringNode(int lineNumber, const std::string& value) :
+Node(lineNumber),
+_value(value)
+{
+}
+
+StringNode::~StringNode()
+{
+}
+
+const std::string& StringNode::getValue() const
+{
+	return _value;
 }
 
 IdentifierNode::IdentifierNode(int lineNumber, const std::string& value) :
@@ -78,29 +99,13 @@ TypeNode::~TypeNode()
 {
 }
 
-ExpressionNode::ExpressionNode(int lineNumber, TType type) :
-TypedNode(lineNumber, type)
+ExpressionNode::ExpressionNode(int lineNumber) :
+Node(lineNumber)
 {
 }
 
 ExpressionNode::~ExpressionNode()
 {
-}
-
-void ExpressionNode::assertBool() const
-{
-	if (_type != T_BOOL)
-	{
-		exitWithMismatchError();
-	}
-}
-
-void ExpressionNode::assertNumeric() const
-{
-	if ((_type != T_INT) && (_type != T_BYTE))
-	{
-		exitWithMismatchError();
-	}
 }
 
 void ExpressionNode::assertAssignAllowed(TType type) const
@@ -113,14 +118,96 @@ void ExpressionNode::assertAssignAllowed(TType type) const
 
 bool ExpressionNode::isAssignAllowed(TType type) const
 {
-	return (((type != T_INT) && (_type == type)) ||
-			((type == T_INT) && ((_type == T_INT) || (_type == T_BYTE))));
+	const TType myType = getType();
+
+	return (((type != T_INT) && (myType == type)) ||
+			((type == T_INT) && ((myType == T_INT) || (myType == T_BYTE))));
 }
 
 void ExpressionNode::exitWithMismatchError() const
 {
 	output::errorMismatch(_lineNumber);
 	exit(1);
+}
+
+NumericExpressionNode::NumericExpressionNode(int lineNumber, TType type, const std::string& variableName) :
+ExpressionNode(lineNumber),
+_type(type),
+_variableName(variableName)
+{
+	if ((type != T_INT) && (type != T_BYTE))
+	{
+		cout << "Error: numeric expression is constructed with type mismatch" << endl;
+		exit(1);
+	}
+}
+
+NumericExpressionNode::~NumericExpressionNode()
+{
+}
+
+TType NumericExpressionNode::getType() const
+{
+	return _type;
+}
+
+const std::string& NumericExpressionNode::getVariableName() const
+{
+	return _variableName;
+}
+
+BooleanExpressionNode::BooleanExpressionNode(int lineNumber,
+                       					     const std::vector<BPItem>& trueList,
+                          					 const std::vector<BPItem>& falseList) :
+ExpressionNode(lineNumber),
+_trueList(trueList),
+_falseList(falseList)
+{
+}
+
+BooleanExpressionNode::~BooleanExpressionNode()
+{
+}
+
+TType BooleanExpressionNode::getType() const
+{
+	return T_BOOL;
+}
+
+const std::vector<BPItem>& BooleanExpressionNode::getTrueList() const
+{
+	return _trueList;
+}
+
+const std::vector<BPItem>& BooleanExpressionNode::getFalseList() const
+{
+	return _falseList;
+}
+
+StringExpressionNode::StringExpressionNode(int lineNumber, const std::string& variableName, int numBytes) :
+ExpressionNode(lineNumber),
+_variableName(variableName),
+_numBytes(numBytes)
+{
+}
+
+StringExpressionNode::~StringExpressionNode()
+{
+}
+
+TType StringExpressionNode::getType() const
+{
+	return T_STRING;
+}
+
+const std::string& StringExpressionNode::getVariableName() const
+{
+	return _variableName;
+}
+
+int StringExpressionNode::getNumBytes() const
+{
+	return _numBytes;
 }
 
 ExpressionListNode::ExpressionListNode(ExpressionNodePtr first) :
@@ -131,6 +218,11 @@ _expressionList( {first} )
 
 ExpressionListNode::~ExpressionListNode()
 {
+}
+
+const std::list<ExpressionNodePtr>& ExpressionListNode::getExpressionList() const
+{
+	return _expressionList;
 }
 
 void ExpressionListNode::pushFront(ExpressionNodePtr expression)
@@ -173,13 +265,24 @@ void ExpressionListNode::exitWithPrototypeMismatchError(int lineNumber, const st
 		exit(1);
 }
 
-CallNode::CallNode(int lineNumber, TType type) :
-TypedNode(lineNumber, type)
+CallNode::CallNode(int lineNumber) :
+TypedNode(lineNumber, T_VOID)
+{
+}
+
+CallNode::CallNode(int lineNumber, TType type, const std::string& variableName) :
+TypedNode(lineNumber, type),
+_variableName(variableName)
 {
 }
 
 CallNode::~CallNode()
 {
+}
+
+const std::string& CallNode::getVariableName() const
+{
+	return _variableName;
 }
 
 FormalDeclarationNode::FormalDeclarationNode(int lineNumber, TType type, const std::string& id) :
@@ -246,4 +349,103 @@ void FormalsNode::assertIdDoesNotExist(int lineNumber, const std::string& id) co
 		output::errorDef(lineNumber, id);
 		exit(1);
 	}
+}
+
+BinopNode::BinopNode(int lineNumber, char operatorChar) :
+Node(lineNumber),
+_binopString(createBinopString(operatorChar))
+{
+}
+
+BinopNode::~BinopNode()
+{
+}
+
+const std::string& BinopNode::getBinopString() const
+{
+	return _binopString;
+}
+
+std::string BinopNode::createBinopString(char operatorChar)
+{
+	switch (operatorChar)
+	{
+	case '+':
+		return "add";
+	case '-':
+		return "sub";
+	case '*':
+		return "mul";
+	case '/':
+		return "sdiv";
+	default:
+		cout << "Error: unidentified binop - " << operatorChar << endl;
+		exit(1);
+	}
+}
+
+RelopNode::RelopNode(int lineNumber, const std::string& operatorString) :
+Node(lineNumber),
+_relopString(createRelopString(operatorString))
+{
+}
+
+RelopNode::~RelopNode()
+{
+}
+
+const std::string& RelopNode::getRelopString() const
+{
+	return _relopString;
+}
+
+std::string RelopNode::createRelopString(const std::string& operatorString)
+{
+	if (operatorString == "==")
+	{
+		return "eq";
+	}
+	
+	if (operatorString == "!=")
+	{
+		return "ne";
+	}
+	
+	if (operatorString == "<")
+	{
+		return "slt";
+	}
+	
+	if (operatorString == ">")
+	{
+		return "sgt";
+	}
+	
+	if (operatorString == "<=")
+	{
+		return "sle";
+	}
+	
+	if (operatorString == ">=")
+	{
+		return "sge";
+	}
+
+	cout << "Error: unidentified relop - " << operatorString << endl;
+	exit(1);
+}
+
+MarkerNode::MarkerNode(int lineNumber, const std::string& label) :
+Node(lineNumber),
+_label(label)
+{
+}
+
+MarkerNode::~MarkerNode()
+{
+}
+
+const std::string& MarkerNode::getlabel() const
+{
+	return _label;
 }

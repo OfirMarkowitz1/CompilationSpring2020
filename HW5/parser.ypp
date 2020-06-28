@@ -70,8 +70,8 @@ Statement	    :	LBRACE { parserReduceHandler.openScope(); } Statements RBRACE { 
                 |	IfBase Statement { parserReduceHandler.closeScope(); } %prec COND_WITHOUT_ELSE
 				| 	IfBase Statement ELSE { parserReduceHandler.closeScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); }
 
-                |	WhileBase Statement { parserReduceHandler.handleWhileAfterScope(); } %prec COND_WITHOUT_ELSE
-            	|	WhileBase Statement ELSE { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); }
+                |	WhileBase Statement { parserReduceHandler.handleWhileAfterScope(); handleWhileEnded(); } %prec COND_WITHOUT_ELSE
+            	|	WhileBase Statement ELSE { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); handleWhileEnded(); }
 
 				|	BREAK SC { parserReduceHandler.reduceBreak(); }
 				|	CONTINUE SC { parserReduceHandler.reduceContinue(); }
@@ -114,9 +114,9 @@ Exp				:	LPAREN Exp RPAREN { parserReduceHandler.reduceInParenthesesExpression($
 
 				|	NOT Exp { parserReduceHandler.reduceNotExpression($$, $2); }
 
-				|	Exp AND Exp { parserReduceHandler.reduceLogicalBinopExpression($$, $1, $3); }
+				|	Exp AND M Exp { parserReduceHandler.reduceAndExpression($$, $1, $3, $4); }
 
-				|	Exp OR Exp { parserReduceHandler.reduceLogicalBinopExpression($$, $1, $3); }
+				|	Exp OR M Exp { parserReduceHandler.reduceOrExpression($$, $1, $3, $4); }
 
 				|	Exp RELATIONAL Exp { parserReduceHandler.reduceRelopExpression($$, $1, $3); }								
 				
@@ -126,7 +126,10 @@ Exp				:	LPAREN Exp RPAREN { parserReduceHandler.reduceInParenthesesExpression($
 IfBase			:	IF LPAREN Exp RPAREN { parserReduceHandler.handleIfBeforeScope($3); };
 				;
 
-WhileBase		:	WHILE LPAREN Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3); };
+WhileBase		:	WHILE LPAREN M Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3, $4); };
+				;
+
+M 				: /* empty */ { parserReduceHandler.reduceMarker($$); }
 				;
 
 %%

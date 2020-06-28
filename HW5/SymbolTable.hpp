@@ -10,7 +10,6 @@
 
 class VariablesScope;
 typedef std::shared_ptr<VariablesScope> VariablesScopePtr;
-typedef std::shared_ptr<const VariablesScope> ConstVariablesScopePtr;
 
 class VariableEntry;
 typedef std::shared_ptr<VariableEntry> VariableEntryPtr;
@@ -33,7 +32,7 @@ public:
 	void pushRegularScope();
 	void pushFunctionScope(const std::vector<FunctionArgumentDataPtr>& arguments);
 
-	ConstVariablesScopePtr popScope();
+	void popScope();
 
 private:
 
@@ -49,9 +48,7 @@ class VariablesScope
 public:
 	VariablesScope(int startingOffset);
 
-	void add(VariableEntryPtr entry);
-
-	void print() const;
+	VariableEntryPtr add(const std::string& id, TType type);
 
 	int getCurrentOffset() const;	
 
@@ -77,8 +74,6 @@ public:
 
 	FunctionEntryPtr find(const std::string& id) const;
 
-	void print() const;
-
 private:
 	std::vector<FunctionEntryPtr> _entries;
 
@@ -99,14 +94,15 @@ protected:
 class VariableEntry : public SymbolEntry
 {
 public:
-	VariableEntry(const std::string& id, TType varType);
+	VariableEntry(const std::string& id, TType varType, int offset);
 
 	TType getType() const;
 
-	void print(int offset) const;
+	int getOffset() const;
 
 private:
 	const TType _varType;
+	const int _offset;
 };
 
 class FunctionEntry : public SymbolEntry
@@ -118,11 +114,7 @@ public:
 
 	const std::vector<TType>& getArgTypes() const;
 
-	void print() const;
-
 private:
 	const TType _retType;
 	const std::vector<TType> _argTypes;
-
-	static const int OFFSET;
 };

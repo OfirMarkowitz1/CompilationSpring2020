@@ -1,57 +1,33 @@
 #include "ExpressionNodeFactory.hpp"
 
-ExpressionNodePtr ExpressionNodeFactory::createInt(int lineNumber) const
+using namespace std;
+
+NumericExpressionNodePtr ExpressionNodeFactory::createInt(int lineNumber, const std::string& varName) const
 {
-	return create(lineNumber, T_INT);
+	return createNumeric(lineNumber, T_INT, varName);
 }
 
-ExpressionNodePtr ExpressionNodeFactory::createByte(int lineNumber) const
+NumericExpressionNodePtr ExpressionNodeFactory::createByte(int lineNumber, const std::string& varName) const
 {
-	return create(lineNumber, T_BYTE);
+	return createNumeric(lineNumber, T_BYTE, varName);
 }
 
-ExpressionNodePtr ExpressionNodeFactory::createBool(int lineNumber) const
+BooleanExpressionNodePtr ExpressionNodeFactory::createBool(int lineNumber, const std::vector<BPItem>& trueList, const std::vector<BPItem>& falseList) const
 {
-	return create(lineNumber, T_BOOL);
+	return make_shared<BooleanExpressionNode>(lineNumber, trueList, falseList);
 }
 
-ExpressionNodePtr ExpressionNodeFactory::createString(int lineNumber) const
+StringExpressionNodePtr ExpressionNodeFactory::createString(int lineNumber, const std::string& varName, int numBytes) const
 {
-	return create(lineNumber, T_STRING);
+	return make_shared<StringExpressionNode>(lineNumber, varName, numBytes);
 }
 
-ExpressionNodePtr ExpressionNodeFactory::createNumericBinop(ExpressionNodePtr lhs, ExpressionNodePtr rhs) const
+NumericExpressionNodePtr ExpressionNodeFactory::createNumeric(int lineNumber, TType type, const std::string& varName) const
 {
-	lhs->assertNumeric();
-	rhs->assertNumeric();
-
-	TType resultNumericType = (((lhs->getType() == T_INT) || (rhs->getType() == T_INT)) ? T_INT : T_BYTE);
-
-	return create(lhs->getLineNumber(), resultNumericType);
-}
-
-ExpressionNodePtr ExpressionNodeFactory::createLogicalBinop(ExpressionNodePtr lhs, ExpressionNodePtr rhs) const
-{
-	lhs->assertBool();
-	rhs->assertBool();
-
-	return createBool(lhs->getLineNumber());
-}
-
-ExpressionNodePtr ExpressionNodeFactory::createRelop(ExpressionNodePtr lhs, ExpressionNodePtr rhs) const
-{
-	lhs->assertNumeric();
-	rhs->assertNumeric();
-
-	return createBool(lhs->getLineNumber());
-}
-
-ExpressionNodePtr ExpressionNodeFactory::create(int lineNumber, TType type) const
-{
-	return std::make_shared<ExpressionNode>(lineNumber, type);
+	return make_shared<NumericExpressionNode>(lineNumber, type, varName);
 }
 
 ExpressionListNodePtr ExpressionNodeFactory::createList(ExpressionNodePtr first) const
 {
-	return std::make_shared<ExpressionListNode>(first);	
+	return make_shared<ExpressionListNode>(first);	
 }

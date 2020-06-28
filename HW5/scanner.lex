@@ -9,6 +9,10 @@ using namespace std;
 
 void exitWithError();
 
+void setRelopNode();
+
+void setNumericBinopNode();
+
 %}
 
 %option yylineno
@@ -39,13 +43,13 @@ continue                                                return CONTINUE;
 \{                                                      return LBRACE;
 \}                                                      return RBRACE;
 =                                                       return ASSIGN;
-==|!=                                                   return EQUALITY;
-\<|\>|\<=|\>=                                           return RELATIONAL;
-\+|\-                                                   return ADDITIVE;
-\*|\/                                                   return MULTIPLICATIVE;
+==|!=                                                   setRelopNode(); return EQUALITY;
+\<|\>|\<=|\>=                                           setRelopNode(); return RELATIONAL;
+\+|\-                                                   setNumericBinopNode(); return ADDITIVE;
+\*|\/                                                   setNumericBinopNode(); return MULTIPLICATIVE;
 [a-zA-Z][a-zA-Z0-9]*                                    yylval = make_shared<IdentifierNode>(yylineno, yytext); return ID;
 0|[1-9][0-9]*                                           yylval = make_shared<NumNode>(yylineno, atoi(yytext)); return NUM;
-\"([^\n\r\"\\]|\\[rnt"\\])+\"                           return STRING;
+\"([^\n\r\"\\]|\\[rnt"\\])+\"                           yylval = make_shared<StringNode>(yylineno, yytext); return STRING;
 [ \t\n\r]                                               ;
 \/\/[^\r\n]*[ \r|\n|\r\n]?                              ;
 .                                                       exitWithError();
@@ -56,4 +60,14 @@ void exitWithError()
 {
     output::errorLex(yylineno);
     exit(1);
+}
+
+void setRelopNode()
+{
+	yyval = make_shared<RelopNode>(yylineno, yytext);
+}
+
+void setNumericBinopNode()
+{
+	yyval = make_shared<NumericBinopNode>(yylineno, yytext[0]);
 }
