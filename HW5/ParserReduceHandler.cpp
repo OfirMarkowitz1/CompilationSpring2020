@@ -66,7 +66,7 @@ void ParserReduceHandler::addFunctionAndOpenScope(NodePtr retType, NodePtr funct
 			argListAtring += ", ";
 		}
 
-		argListAtring += getTypedVarString(argTypes[i], to_string(i), -1);
+		argListAtring += getTypedVarString(argTypes[i], "arg" + to_string(i), -1);
 	}
 
 	CodeBuffer::instance().emit("define " + typeString + " @" + functionIdString + "(" + argListAtring + ") {");
@@ -75,7 +75,7 @@ void ParserReduceHandler::addFunctionAndOpenScope(NodePtr retType, NodePtr funct
 
 	for (int i = 0; i < argTypes.size(); i++)
 	{	
-		storeVarialbe(i, "i32 %" + to_string(i));
+		storeVarialbe(i, "i32 %arg" + to_string(i));
 	}
 }
 
