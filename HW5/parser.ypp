@@ -33,7 +33,7 @@ Funcs			: 	/* empty */
 				|	FuncDecl Funcs
                 ;
 		
-FuncDecl		: 	RetType ID LPAREN Formals RPAREN LBRACE { parserReduceHandler.addFunctionAndOpenScope($1, $2, $4); } Statements RBRACE { parserReduceHandler.closeScope(); }
+FuncDecl		: 	RetType ID LPAREN Formals RPAREN LBRACE { parserReduceHandler.addFunctionAndOpenScope($1, $2, $4); } Statements RBRACE { parserReduceHandler.closeFunctionScope(); }
                 ;
 
 RetType			:	Type { parserReduceHandler.reduceReturnType($$, $1); }
@@ -67,11 +67,11 @@ Statement	    :	LBRACE { parserReduceHandler.openScope(); } Statements RBRACE { 
 				|	RETURN SC { parserReduceHandler.reduceVoidReturn(); }
 				|	RETURN Exp SC { parserReduceHandler.reduceReturn($2); }
 
-                |	IfBase Statement { parserReduceHandler.closeScope(); } %prec COND_WITHOUT_ELSE
-				| 	IfBase Statement ELSE { parserReduceHandler.closeScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); }
+                |	IfBase Statement { parserReduceHandler.reduceIfWithoutElse($1); } %prec COND_WITHOUT_ELSE
+				| 	IfBase Statement ELSE { parserReduceHandler.handleBetweenIfAndElse($$, $1); } Statement { parserReduceHandler.reduceIfWithElse($4);  }
 
-                |	WhileBase Statement { parserReduceHandler.handleWhileAfterScope(); handleWhileEnded(); } %prec COND_WITHOUT_ELSE
-            	|	WhileBase Statement ELSE { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); handleWhileEnded(); }
+                |	WhileExp Statement { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.handleWhileEnded(); } %prec COND_WITHOUT_ELSE
+            	|	WhileExp Statement ELSE { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); parserReduceHandler.handleWhileEnded(); }
 
 				|	BREAK SC { parserReduceHandler.reduceBreak(); }
 				|	CONTINUE SC { parserReduceHandler.reduceContinue(); }
@@ -79,12 +79,12 @@ Statement	    :	LBRACE { parserReduceHandler.openScope(); } Statements RBRACE { 
 			
 Call			: 	ID LPAREN ExpList RPAREN { parserReduceHandler.reduceCall($$, $1, $3); }
 
-				| 	ID LPAREN RPAREN { parserReduceHandler.reduceNoArgumentsCall($$, $1); }
+				| 	ID LPAREN RPAREN { parserReduceHandler.reduceCall($$, $1, nullptr); }
                 ;
 			
-ExpList			: 	Exp { parserReduceHandler.reduceExpressionList($$, $1); }
+ExpList			: 	Exp { parserReduceHandler.handleExpressionInList($1); parserReduceHandler.reduceExpressionList($$, $1); }
 
-				| 	Exp COMMA ExpList { parserReduceHandler.reduceExpressionList($$, $1, $3); }
+				| 	Exp COMMA { parserReduceHandler.handleExpressionInList($1); } ExpList { parserReduceHandler.reduceExpressionList($$, $1, $4); }
                 ;
 			
 Type			: 	INT  { parserReduceHandler.reduceIntType($$); }
@@ -94,9 +94,9 @@ Type			: 	INT  { parserReduceHandler.reduceIntType($$); }
 			
 Exp				:	LPAREN Exp RPAREN { parserReduceHandler.reduceInParenthesesExpression($$, $2); }
 
-				|	Exp ADDITIVE Exp { parserReduceHandler.reduceBinopExpression($$, $1, $3); }
+				|	Exp ADDITIVE Exp { parserReduceHandler.reduceBinopExpression($$, $1, $2, $3); }
 				
-				|	Exp MULTIPLICATIVE Exp { parserReduceHandler.reduceBinopExpression($$, $1, $3); }
+				|	Exp MULTIPLICATIVE Exp { parserReduceHandler.reduceBinopExpression($$, $1, $2, $3); }
 
 				|	ID { parserReduceHandler.reduceVariableExpression($$, $1); }
 
@@ -106,7 +106,7 @@ Exp				:	LPAREN Exp RPAREN { parserReduceHandler.reduceInParenthesesExpression($
 
 				|	NUM B { parserReduceHandler.reduceByteNumExpression($$, $1); }
 
-				|	STRING { parserReduceHandler.reduceStringExpression($$); }
+				|	STRING { parserReduceHandler.reduceStringExpression($$, $1); }
 
 				|	TRUE { parserReduceHandler.reduceTrueExpression($$); }
 
@@ -118,15 +118,15 @@ Exp				:	LPAREN Exp RPAREN { parserReduceHandler.reduceInParenthesesExpression($
 
 				|	Exp OR M Exp { parserReduceHandler.reduceOrExpression($$, $1, $3, $4); }
 
-				|	Exp RELATIONAL Exp { parserReduceHandler.reduceRelopExpression($$, $1, $3); }								
+				|	Exp RELATIONAL Exp { parserReduceHandler.reduceRelopExpression($$, $1, $2, $3); }								
 				
-				|	Exp EQUALITY Exp { parserReduceHandler.reduceRelopExpression($$, $1, $3); }
+				|	Exp EQUALITY Exp { parserReduceHandler.reduceRelopExpression($$, $1, $2, $3); }
                 ;
 
-IfBase			:	IF LPAREN Exp RPAREN { parserReduceHandler.handleIfBeforeScope($3); };
+IfBase			:	IF LPAREN Exp RPAREN { parserReduceHandler.handleIfBeforeScope($$, $3); };
 				;
 
-WhileBase		:	WHILE LPAREN M Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3, $4); };
+WhileExp		:	WHILE LPAREN M Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3, $4); };
 				;
 
 M 				: /* empty */ { parserReduceHandler.reduceMarker($$); }

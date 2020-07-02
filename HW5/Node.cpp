@@ -108,6 +108,16 @@ ExpressionNode::~ExpressionNode()
 {
 }
 
+const std::string& ExpressionNode::getArgumentString() const
+{
+	return _argumentString;
+}
+
+void ExpressionNode::setArgumentString(const std::string& arugmentString)
+{
+	_argumentString = arugmentString;
+}
+
 void ExpressionNode::assertAssignAllowed(TType type) const
 {
 	if (!isAssignAllowed(type))
@@ -445,7 +455,22 @@ MarkerNode::~MarkerNode()
 {
 }
 
-const std::string& MarkerNode::getlabel() const
+const std::string& MarkerNode::getLabel() const
 {
 	return _label;
+}
+
+BackPatchNode::BackPatchNode(int lineNumber, const std::vector<BPItem>& items) :
+Node(lineNumber),
+_items(items)
+{
+}
+
+BackPatchNode::~BackPatchNode()
+{
+}
+
+const std::vector<BPItem>& BackPatchNode::getItems() const
+{
+	return _items;
 }

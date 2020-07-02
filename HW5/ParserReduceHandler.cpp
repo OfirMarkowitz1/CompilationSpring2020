@@ -7,11 +7,16 @@ using namespace std;
 
 extern int yylineno;
 
+const string PRINT_STRING_SPECIFIER = "str_specifier";
+const string PRINTI_STRING_SPECIFIER = "int_specifier";
+
 const string DEVISION_BY_ZERO_STRING_VAR = "div_by_zero_error";
 
 const string STACK_POINTER_NAME = "stack_array_ptr";
 
-const string STACK_ARRAY_TYPE = "[50 x i32]";
+const string DEVISION_BY_ZERO_STRING = "Error division by zero";
+
+const int VARIABLES_ARRAY_SIZE = 50;
 
 ParserReduceHandler::ParserReduceHandler() :
 _symbolTableAsserter(_variablesTable, _functionsTable)
@@ -27,6 +32,10 @@ _symbolTableAsserter(_variablesTable, _functionsTable)
 void ParserReduceHandler::reduceProgram()
 {
 	_symbolTableAsserter.assertMainFunctionDefined();
+
+	CodeBuffer::instance().printGlobalBuffer();
+	cout << endl;
+	CodeBuffer::instance().printCodeBuffer();
 }
 
 void ParserReduceHandler::addFunctionAndOpenScope(NodePtr retType, NodePtr functionId, NodePtr formals)
@@ -47,11 +56,26 @@ void ParserReduceHandler::addFunctionAndOpenScope(NodePtr retType, NodePtr funct
 
 	_functionScopeRetType = retTType;
 
-	CodeBuffer::instance().emit("%" + STACK_POINTER_NAME + " = alloca " + STACK_ARRAY_TYPE);
+	const string typeString = (retTType == T_VOID ? "void" : "i32");
 
-	for (TType argType : argTypes)
+	string argListAtring = "";
+	for (int i = 0; i < argTypes.size(); i++)
 	{
-		CodeBuffer::instance().emit("store i32 0, i32* %1");
+		if (!argListAtring.empty())
+		{
+			argListAtring += ", ";
+		}
+
+		argListAtring += getTypedVarString(argTypes[i], to_string(i), -1);
+	}
+
+	CodeBuffer::instance().emit("define " + typeString + " @" + functionIdString + "(" + argListAtring + ") {");
+
+	emitWithIndent("%" + STACK_POINTER_NAME + " = alloca " + createArrayType(VARIABLES_ARRAY_SIZE, 32));
+
+	for (int i = 0; i < argTypes.size(); i++)
+	{	
+		storeVarialbe(i, "i32 %" + to_string(i));
 	}
 }
 
@@ -119,6 +143,16 @@ void ParserReduceHandler::closeScope()
 	_variablesTable.popScope();
 }
 
+void ParserReduceHandler::closeFunctionScope()
+{
+	closeScope();
+
+	const string retOperandString = (_functionScopeRetType == T_VOID ? "void" : "i32 0");
+
+ 	emitWithIndent("ret " + retOperandString);
+	CodeBuffer::instance().emit("}\n");
+}
+
 void ParserReduceHandler::reduceVariableDeclarationStatement(NodePtr variableType, NodePtr variableId)
 {
 	const TType variableTType = _nodeCaster.castType(variableType)->getType();
@@ -129,7 +163,9 @@ void ParserReduceHandler::reduceVariableDeclarationStatement(NodePtr variableTyp
 
 	_symbolTableAsserter.assertIdentifierUndefined(variableIdString, identifierNode->getLineNumber());
 
-	_variablesTable.add(variableIdString, variableTType);
+	VariableEntryPtr variableEntry = _variablesTable.add(variableIdString, variableTType);
+	
+	storeVarialbe(variableEntry->getOffset(), "i32 0");
 }
 
 void ParserReduceHandler::reduceAssignedVariableDeclarationStatement(NodePtr variableType, NodePtr variableId, NodePtr assignExpression)
@@ -142,9 +178,12 @@ void ParserReduceHandler::reduceAssignedVariableDeclarationStatement(NodePtr var
 
 	_symbolTableAsserter.assertIdentifierUndefined(variableIdString, identifierNode->getLineNumber());
 
-	_nodeCaster.castExpression(assignExpression)->assertAssignAllowed(variableTType);
+	ExpressionNodePtr expressionNode = _nodeCaster.castExpression(assignExpression);
+	expressionNode->assertAssignAllowed(variableTType);
 
-	_variablesTable.add(variableIdString, variableTType);
+	VariableEntryPtr variableEntry = _variablesTable.add(variableIdString, variableTType);
+	
+	assignToVariable(variableEntry->getOffset(), expressionNode);
 }
 
 void ParserReduceHandler::reduceAssignedVariableStatement(NodePtr variableId, NodePtr assignExpression)
@@ -157,7 +196,10 @@ void ParserReduceHandler::reduceAssignedVariableStatement(NodePtr variableId, No
 
 	VariableEntryPtr variableEntry = _variablesTable.find(variableIdString);
 
-	_nodeCaster.castExpression(assignExpression)->assertAssignAllowed(variableEntry->getType());
+	ExpressionNodePtr expressionNode = _nodeCaster.castExpression(assignExpression);
+	expressionNode->assertAssignAllowed(variableEntry->getType());
+
+	assignToVariable(variableEntry->getOffset(), expressionNode);
 }
 
 void ParserReduceHandler::reduceVoidReturn()
@@ -167,18 +209,62 @@ void ParserReduceHandler::reduceVoidReturn()
 		output::errorMismatch(yylineno);
 		exit(1);
 	}
+
+	emitWithIndent("ret void");
 }
 
 void ParserReduceHandler::reduceReturn(NodePtr returnExpression)
 {
-	_nodeCaster.castExpression(returnExpression)->assertAssignAllowed(_functionScopeRetType);
+	ExpressionNodePtr expressionNode = _nodeCaster.castExpression(returnExpression);
+	expressionNode->assertAssignAllowed(_functionScopeRetType);
+
+	emitWithIndent("ret " + handleExtractVarFromExpression(expressionNode));
 }
 
-void ParserReduceHandler::handleIfBeforeScope(NodePtr expression)
+void ParserReduceHandler::handleIfBeforeScope(NodePtr& backPatch, NodePtr expression)
 {
-	_nodeCaster.castExpression(expression)->assertBool();
+	BooleanExpressionNodePtr booleanExpression = _nodeCaster.castBooleanExpression(expression);
+
+	CodeBuffer::instance().bpatch(booleanExpression->getTrueList(), CodeBuffer::instance().genLabel());
+
+	backPatch = make_shared<BackPatchNode>(expression->getLineNumber(), booleanExpression->getFalseList());
 
 	openScope();
+}
+
+void ParserReduceHandler::reduceIfWithoutElse(NodePtr ifBackPatch)
+{
+	closeScope();
+
+	vector<BPItem> backPatchItemsAfterIf = _nodeCaster.castBackPatch(ifBackPatch)->getItems();
+	
+	backPatchItemsAfterIf.emplace_back(emitUnconditionalBranch(), FIRST);
+		
+	CodeBuffer::instance().bpatch(backPatchItemsAfterIf, CodeBuffer::instance().genLabel());	
+}
+
+void ParserReduceHandler::handleBetweenIfAndElse(NodePtr& elseBackPatch, NodePtr ifBackPatch)
+{
+	closeScope();
+
+	elseBackPatch = make_shared<BackPatchNode>(yylineno, CodeBuffer::makelist(make_pair(emitUnconditionalBranch(), FIRST)));
+
+	BackPatchNodePtr ifBackPatchNode = _nodeCaster.castBackPatch(ifBackPatch);
+
+	CodeBuffer::instance().bpatch(ifBackPatchNode->getItems(), CodeBuffer::instance().genLabel());
+
+	openScope();
+}
+
+void ParserReduceHandler::reduceIfWithElse(NodePtr elseBackPatch)
+{
+	closeScope();
+
+	vector<BPItem> backPatchItemsAfterElse = _nodeCaster.castBackPatch(elseBackPatch)->getItems();
+	
+	backPatchItemsAfterElse.emplace_back(emitUnconditionalBranch(), FIRST);
+		
+	CodeBuffer::instance().bpatch(backPatchItemsAfterElse, CodeBuffer::instance().genLabel());	
 }
 
 void ParserReduceHandler::handleWhileBeforeScope(NodePtr marker, NodePtr expression)
@@ -192,6 +278,7 @@ void ParserReduceHandler::handleWhileBeforeScope(NodePtr marker, NodePtr express
 	openScope();
 
 	const string boolVar = handleGetBoolVarWithValue(booleanExpression);
+
 }
 
 void ParserReduceHandler::handleWhileAfterScope()
@@ -227,7 +314,7 @@ void ParserReduceHandler::reduceContinue()
 		exit(1);
 	}
 
-	CodeBuffer::instance().emit("br label %" + _loopConditionLabelStack.top());
+	emitWithIndent("br label %" + _loopConditionLabelStack.top());
 }
 
 void ParserReduceHandler::reduceCall(NodePtr& call, NodePtr functionId, NodePtr expressionList)
@@ -246,47 +333,15 @@ void ParserReduceHandler::reduceCall(NodePtr& call, NodePtr functionId, NodePtr 
 	{
 		ExpressionListNodePtr expressionListNode = _nodeCaster.castExpressionList(expressionList);
 		expressionListNode->assertCall(lineNumber, functionIdString, functionEntry->getArgTypes());
-
-		for (const auto& expression : expressionListNode->getExpressionList())
+		
+		for (const auto& argExpression : expressionListNode->getExpressionList())
 		{
 			if (!argListString.empty())
 			{
 				argListString += ", ";
 			}
 
-			switch (expression->getType())
-			{
-			case T_INT:
-			case T_BYTE:
-			{
-				NumericExpressionNodePtr numericExpression = _nodeCaster.castNumericExpression(expression);
-				
-				argListString += "i32 %" + numericExpression->getVariableName();			
-			} break;
-
-			case T_BOOL:
-			{
-				BooleanExpressionNodePtr booleanExpression = _nodeCaster.castBooleanExpression(expression);
-
-				const string boolVar = handleGetBoolVarWithValue(booleanExpression);
-
-				argListString += "i32 %" + boolVar;
-			} break;
-
-			case T_STRING:
-			{
-				StringExpressionNodePtr springExpression = _nodeCaster.castStringExpression(expression);
-
-				const string arrayType = "[" + to_string(springExpression->getNumBytes()) + " x i8]";
-
-				argListString += "i8* getelementptr (" + arrayType + ", " + arrayType + "* @." +
-								 springExpression->getVariableName() + ", i32 0, i32 0)";
-			} break;
-
-			case T_VOID:
-				cout << "Error: argument is of void type" << endl;
-				exit(1);
-			}
+			argListString += argExpression->getArgumentString();
 		}
 	}
 	else
@@ -300,7 +355,7 @@ void ParserReduceHandler::reduceCall(NodePtr& call, NodePtr functionId, NodePtr 
 	{
 		call = make_shared<CallNode>(lineNumber);
 
-		CodeBuffer::instance().emit("call void @" + functionEntry->getId() + "(" + argListString + ")");
+		emitWithIndent("call void @" + functionEntry->getId() + "(" + argListString + ")");
 	}
 	else
 	{
@@ -308,8 +363,15 @@ void ParserReduceHandler::reduceCall(NodePtr& call, NodePtr functionId, NodePtr 
 
 		call = make_shared<CallNode>(lineNumber, retType, callVar);
 
-		CodeBuffer::instance().emit("%" + callVar + " = call i32 @" + functionEntry->getId() + "(" + argListString + ")");
+		emitWithIndent("%" + callVar + " = call i32 @" + functionEntry->getId() + "(" + argListString + ")");
 	}
+}
+
+void ParserReduceHandler::handleExpressionInList(NodePtr expression)
+{
+	ExpressionNodePtr expressionNode = _nodeCaster.castExpression(expression);
+	
+	expressionNode->setArgumentString(handleExtractVarFromExpression(expressionNode));
 }
 
 void ParserReduceHandler::reduceExpressionList(NodePtr& expressionList, NodePtr expression)
@@ -322,7 +384,7 @@ void ParserReduceHandler::reduceExpressionList(NodePtr& expressionList, NodePtr 
 void ParserReduceHandler::reduceExpressionList(NodePtr& expressionList, NodePtr expression, NodePtr subExpressionList)
 {
 	ExpressionNodePtr expressionNode = _nodeCaster.castExpression(expression);
-	
+
 	ExpressionListNodePtr expressionListNode = _nodeCaster.castExpressionList(subExpressionList);
 	
 	expressionListNode->pushFront(expressionNode);
@@ -359,24 +421,29 @@ void ParserReduceHandler::reduceBinopExpression(NodePtr& expression, NodePtr lhs
 		
 	const string& binopStr = binopNode->getBinopString();
 
-	const string initialVat = _freshVariableFactory.createFreshVariable();
+	if (binopStr == "sdiv")
+	{
+		handleExitIfDevidedByZero(rhsNode->getVariableName());
+	}
+
+	const string initialVar = _freshVariableFactory.createFreshVariable();
 
 	const TType resType = (((lhsNode->getType() == T_INT) || (rhsNode->getType() == T_INT)) ? T_INT : T_BYTE);
 
-	CodeBuffer::instance().emit("%" + initialVat + " = " + binopStr + " i32 %" +
-								lhsNode->getVariableName() + ", %" + rhsNode->getVariableName());
+	emitWithIndent("%" + initialVar + " = " + binopStr + " i32 %" +
+				   lhsNode->getVariableName() + ", %" + rhsNode->getVariableName());
 
-	string finalVar = initialVat;
+	string finalVar = initialVar;
 
 	if (resType == T_BYTE)
 	{
 		const string truncatedVar = _freshVariableFactory.createFreshVariable();
 
-		CodeBuffer::instance().emit("%" + truncatedVar + " = trunc i32 %" + initialVat + " to i8");
+		emitWithIndent("%" + truncatedVar + " = trunc i32 %" + initialVar + " to i8");
 
 		const string zextedVar = _freshVariableFactory.createFreshVariable();
 
-		CodeBuffer::instance().emit("%" + zextedVar + " = zext i8 %" + truncatedVar + " to i32");
+		emitWithIndent("%" + zextedVar + " = zext i8 %" + truncatedVar + " to i32");
 
 		finalVar = zextedVar;
 	}
@@ -397,13 +464,11 @@ void ParserReduceHandler::reduceVariableExpression(NodePtr& expression, NodePtr 
 
 	const string tempPtr = _freshVariableFactory.createFreshVariable();
 
-	CodeBuffer::instance().emit("%" + tempPtr + " = getelementptr " + STACK_ARRAY_TYPE + 
-								", " + STACK_ARRAY_TYPE + "* " + STACK_POINTER_NAME +
-								", i32 0, i32 " + to_string(variableEntry->getOffset()));
+	emitWithIndent("%" + tempPtr + " = " + createStackVariablesGetElementPointer(variableEntry->getOffset()));
 		
 	const string tempVar = _freshVariableFactory.createFreshVariable();
 
-	CodeBuffer::instance().emit("%" + tempVar + " = load i32, i32* " + tempPtr);
+	emitWithIndent("%" + tempVar + " = load i32, i32* %" + tempPtr);
 
 	const TType varType = variableEntry->getType();
 
@@ -415,7 +480,7 @@ void ParserReduceHandler::reduceVariableExpression(NodePtr& expression, NodePtr 
 		break;
 
 	case T_BOOL:
-		expression = createBranchBooleanExpression(lineNumber, tempVar);
+		expression = createBranchBooleanExpression(lineNumber, truncateBoolVar(tempVar));
 		break;
 
 	case T_VOID:
@@ -441,7 +506,8 @@ void ParserReduceHandler::reduceCallExpression(NodePtr& expression, NodePtr call
 		break;
 
 	case T_BOOL:
-		expression = createBranchBooleanExpression(lineNumber, callRetVar);
+
+		expression = createBranchBooleanExpression(lineNumber, truncateBoolVar(callRetVar));
 		break;
 
 	case T_VOID:
@@ -464,7 +530,7 @@ void ParserReduceHandler::reduceNumExpression(NodePtr& expression, NodePtr num)
 
 	const string intValueString = to_string(numNode->getValue());
 
-	CodeBuffer::instance().emit("%" + varName + " = add i32 0, " + intValueString);
+	emitWithIndent("%" + varName + " = add i32 0, " + intValueString);
 }
 
 void ParserReduceHandler::reduceByteNumExpression(NodePtr& expression, NodePtr byteNum)
@@ -478,7 +544,7 @@ void ParserReduceHandler::reduceByteNumExpression(NodePtr& expression, NodePtr b
 
 	const string intValueString = to_string(numNode->getValue());
 
-	CodeBuffer::instance().emit("%" + varName + " = add i32 0, " + intValueString);
+	emitWithIndent("%" + varName + " = add i32 0, " + intValueString);
 }
 
 void ParserReduceHandler::reduceStringExpression(NodePtr& expression, NodePtr stringBaseNode)
@@ -564,8 +630,8 @@ void ParserReduceHandler::reduceRelopExpression(NodePtr& expression, NodePtr lhs
 
 	const string relopResultVar = _freshVariableFactory.createFreshVariable();
 
-	CodeBuffer::instance().emit("%" + relopResultVar + " = icmp " + relopString + " i32 %" +
-								lhsNode->getVariableName() + ", %" + rhsNode->getVariableName());
+	emitWithIndent("%" + relopResultVar + " = icmp " + relopString + " i32 %" +
+				   lhsNode->getVariableName() + ", %" + rhsNode->getVariableName());
 
 	expression = createBranchBooleanExpression(lhsNode->getLineNumber(), relopResultVar);
 }
@@ -580,29 +646,45 @@ void ParserReduceHandler::reduceMarker(NodePtr& marker)
 void ParserReduceHandler::declareSystemCalls()
 {
 	CodeBuffer::instance().emit("declare i32 @printf(i8*, ...)");
-	CodeBuffer::instance().emit("declare void @exit(i32)");
+	CodeBuffer::instance().emit("declare void @exit(i32)\n");
 }
 
 void ParserReduceHandler::defineDivisionByZeroErrorString()
 {
-	defineGlobalString(DEVISION_BY_ZERO_STRING_VAR, "Error division by zero");
+	defineGlobalString(DEVISION_BY_ZERO_STRING, DEVISION_BY_ZERO_STRING_VAR);
 }
 
 void ParserReduceHandler::defineGlobalString(const std::string& stringValue, const std::string& stringName)
 {
-	const string stringNumBytesStr = to_string(stringValue.length() + 1);
+	defineGlobalString(stringValue, stringName, -1);
+}
 
-	CodeBuffer::instance().emitGlobal("@." + stringName + " = constant [" + stringNumBytesStr + "] x i8] c\"" + stringValue + "\\00\"");
+void ParserReduceHandler::defineGlobalString(const std::string& stringValue,
+											 const std::string& stringName, int forcedNumBytes)
+{
+	const int numBytes = (forcedNumBytes == -1 ? (stringValue.length() + 1) : forcedNumBytes);
+
+	CodeBuffer::instance().emitGlobal("@." + stringName + " = constant " + createArrayType(numBytes, 8) + " c\"" + stringValue + "\\00\"");
 }
 
 int ParserReduceHandler::emitConditionalBranch(const std::string& condVar)
 {
-	return CodeBuffer::instance().emit("br i1 %" + condVar + ", label @, label @");
+	return emitWithIndent("br i1 %" + condVar + ", label @, label @");
 }
 
 int ParserReduceHandler::emitUnconditionalBranch()
 {
-	return CodeBuffer::instance().emit("br label @");
+	return emitWithIndent("br label @");
+}
+
+int ParserReduceHandler::emitWithIndent(const std::string& string)
+{
+	return CodeBuffer::instance().emit("\t" + string);
+}
+
+void ParserReduceHandler::emitComment(const std::string& comment)
+{
+	CodeBuffer::instance().emit("; " + comment);
 }
 
 std::string ParserReduceHandler::handleGetBoolVarWithValue(BooleanExpressionNodePtr booleanExpression)
@@ -621,8 +703,7 @@ std::string ParserReduceHandler::handleGetBoolVarWithValue(BooleanExpressionNode
 
 	const string boolVar = _freshVariableFactory.createFreshVariable();
 
-	CodeBuffer::instance().emit("%" + boolVar + " = phi i1 [1, %" + trueLabel +
-								"], [0, %" + falseLabel + "]");
+	emitWithIndent("%" + boolVar + " = phi i32 [1, %" + trueLabel + "], [0, %" + falseLabel + "]");
 
 	return boolVar;
 }
@@ -637,28 +718,150 @@ BooleanExpressionNodePtr ParserReduceHandler::createBranchBooleanExpression(int 
 	return _expressionNodeFactory.createBool(lineNumber, trueList, falseList);
 }
 
+std::string ParserReduceHandler::truncateBoolVar(const std::string& boolVar)
+{
+	const string truncatedVar = _freshVariableFactory.createFreshVariable();
+
+	emitWithIndent("%" + truncatedVar + " = trunc i32 %" + boolVar + " to i1");
+
+	return truncatedVar;
+}
+
+std::string ParserReduceHandler::handleExtractVarFromExpression(ExpressionNodePtr expression)
+{
+	const TType argType = expression->getType();
+
+	switch (argType)
+	{
+	case T_INT:
+	case T_BYTE:
+	{
+		NumericExpressionNodePtr numericExpression = _nodeCaster.castNumericExpression(expression);
+
+		return getTypedVarString(argType, numericExpression->getVariableName(), -1);
+	}
+
+	case T_BOOL:
+	{
+		BooleanExpressionNodePtr booleanExpression = _nodeCaster.castBooleanExpression(expression);
+
+		const string boolVar = handleGetBoolVarWithValue(booleanExpression);
+
+		return getTypedVarString(argType, boolVar, -1);
+	}
+
+	case T_STRING:
+	{
+		StringExpressionNodePtr stringExpression = _nodeCaster.castStringExpression(expression);
+
+		return getTypedVarString(argType, stringExpression->getVariableName(), stringExpression->getNumBytes());
+	}
+
+	case T_VOID:
+		cout << "Error: argument is of void type" << endl;
+		exit(1);
+	}
+}
+
+std::string ParserReduceHandler::getTypedVarString(TType type, const std::string& varName, int numBytes)
+{
+	switch (type)
+	{
+	case T_INT:
+	case T_BYTE:
+	case T_BOOL:
+		return "i32 %" + varName;
+
+	case T_STRING:
+		return createGlobalStringGetElementPointer(varName, numBytes);
+
+	case T_VOID:
+		return "void";
+	}
+}
+
+void ParserReduceHandler::assignToVariable(int offset, ExpressionNodePtr assignExpression)
+{	
+	const string typedVarString = handleExtractVarFromExpression(assignExpression);
+
+	storeVarialbe(offset, typedVarString);
+}
+
+void ParserReduceHandler::storeVarialbe(int offset, const std::string& typedVarString)
+{
+	const string tempPtr = _freshVariableFactory.createFreshVariable();
+
+	emitWithIndent("%" + tempPtr + " = " + createStackVariablesGetElementPointer(offset));
+	emitWithIndent("store " + typedVarString + ", i32* %" + tempPtr);	
+}
+
+void ParserReduceHandler::handleExitIfDevidedByZero(const std::string& rhsVar)
+{
+	const string tempVar = _freshVariableFactory.createFreshVariable();
+
+	emitWithIndent("%" + tempVar + " = icmp eq i32 0, %" + rhsVar);
+	
+	const int branchAddress = emitConditionalBranch(tempVar);
+	
+	CodeBuffer::instance().bpatch(CodeBuffer::makelist(make_pair(branchAddress, FIRST)), CodeBuffer::instance().genLabel());
+
+	emitWithIndent("call void @print(" + createGlobalStringGetElementPointer(DEVISION_BY_ZERO_STRING_VAR, DEVISION_BY_ZERO_STRING.length() + 1) + ")");
+	emitWithIndent("call void @exit(i32 1)");
+	emitWithIndent("unreachable");
+
+	CodeBuffer::instance().bpatch(CodeBuffer::makelist(make_pair(branchAddress, SECOND)), CodeBuffer::instance().genLabel());
+}
+
+std::string ParserReduceHandler::createStackVariablesGetElementPointer(int index)
+{
+	const string stackArrayType = createArrayType(VARIABLES_ARRAY_SIZE, 32);
+
+	return "getelementptr " + stackArrayType +  ", " + stackArrayType + "* %" +
+			STACK_POINTER_NAME + ", i32 0, i32 " + to_string(index);
+}
+
+std::string ParserReduceHandler::createGlobalStringGetElementPointer(const std::string& stringName, int numBytes)
+{
+	const string arrayType = createArrayType(numBytes, 8);
+
+	return "i8* getelementptr (" + arrayType + ", " + arrayType + "* @." + stringName + ", i32 0, i32 0)";
+}
+
+std::string ParserReduceHandler::createArrayType(int size, int numBits)
+{
+	if (size < 0)
+	{
+		cout << "Error: size of array is too small" << endl;
+		exit(1);
+	}
+
+	return "[" + to_string(size) + " x i" + to_string(numBits) + "]";
+}
+
 void ParserReduceHandler::handleDefinePrintFunction()
 {
 	_functionsTable.add("print", T_VOID, { T_STRING });
 
-	defineGlobalString("str_specifier", "%s\\0A");
+	defineGlobalString("%s\\0A", PRINT_STRING_SPECIFIER, 4);
 
 	auto& codeBuffer = CodeBuffer::instance();
 	codeBuffer.emit("define void @print(i8*) {");
-	codeBuffer.emit("	call i32 (i8*, ...) @printf(i8* getelementptr ([4 x i8], [4 x i8]* @.str_specifier, i32 0, i32 0), i8* %0)");
+	codeBuffer.emit("	call i32 (i8*, ...) @printf(" +
+					createGlobalStringGetElementPointer(PRINT_STRING_SPECIFIER, 4) + ", i8* %0)");
  	codeBuffer.emit("	ret void");
- 	codeBuffer.emit("}");
+ 	codeBuffer.emit("}\n");
 }
 
 void ParserReduceHandler::handleDefinePrintiFunction()
 {
 	_functionsTable.add("printi", T_VOID, { T_INT });
 
-	defineGlobalString("int_specifier", "%d\\0A");
+	defineGlobalString("%d\\0A", PRINTI_STRING_SPECIFIER, 4);
 
 	auto& codeBuffer = CodeBuffer::instance();
 	codeBuffer.emit("define void @printi(i32) {");
-	codeBuffer.emit("	call i32 (i8*, ...) @printf(i8* getelementptr ([4 x i8], [4 x i8]* @.int_specifier, i32 0, i32 0), i32 %0)");
+	codeBuffer.emit("	call i32 (i8*, ...) @printf(" +
+					createGlobalStringGetElementPointer(PRINTI_STRING_SPECIFIER, 4) + ", i32 %0)");
 	codeBuffer.emit("	ret void");
-	codeBuffer.emit("}");
+	codeBuffer.emit("}\n");
 }

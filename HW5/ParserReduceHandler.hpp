@@ -26,18 +26,23 @@ public:
 	void reduceFormalDeclaration(NodePtr& formalDeclaration, NodePtr formalType, NodePtr formalId);
 	void openScope();
 	void closeScope();
+	void closeFunctionScope();
 	void reduceVariableDeclarationStatement(NodePtr variableType, NodePtr variableId);
 	void reduceAssignedVariableDeclarationStatement(NodePtr variableType, NodePtr variableId, NodePtr assignExpression);
 	void reduceAssignedVariableStatement(NodePtr variableId, NodePtr assignExpression);
 	void reduceVoidReturn();
 	void reduceReturn(NodePtr returnExpression);
-	void handleIfBeforeScope(NodePtr expression);
+	void handleIfBeforeScope(NodePtr& backPatch, NodePtr expression);
+	void reduceIfWithoutElse(NodePtr ifBackPatch);
+	void handleBetweenIfAndElse(NodePtr& elseBackPatch, NodePtr ifBackPatch);
+	void reduceIfWithElse(NodePtr elseBackPatch);
 	void handleWhileBeforeScope(NodePtr marker, NodePtr expression);
 	void handleWhileAfterScope();
 	void handleWhileEnded();
 	void reduceBreak();
 	void reduceContinue();
 	void reduceCall(NodePtr& call, NodePtr functionId, NodePtr expressionList);
+	void handleExpressionInList(NodePtr expression);
 	void reduceExpressionList(NodePtr& expressionList, NodePtr expression);
 	void reduceExpressionList(NodePtr& expressionList, NodePtr expression, NodePtr subExpressionList);
 	void reduceIntType(NodePtr& type);
@@ -65,12 +70,32 @@ private:
 	void defineDivisionByZeroErrorString();
 
 	void defineGlobalString(const std::string& stringValue, const std::string& stringName);
+	void defineGlobalString(const std::string& stringValue, const std::string& stringName, int forcedNumBytes);
 
 	int emitConditionalBranch(const std::string& condVar);
 	int emitUnconditionalBranch();
 
+	int emitWithIndent(const std::string& string);
+
+	void emitComment(const std::string& comment);
+
 	std::string handleGetBoolVarWithValue(BooleanExpressionNodePtr booleanExpression);
 	BooleanExpressionNodePtr createBranchBooleanExpression(int lineNumber, const std::string& condVar);
+	std::string truncateBoolVar(const std::string& boolVar);
+
+	std::string handleExtractVarFromExpression(ExpressionNodePtr expression);
+
+	std::string getTypedVarString(TType type, const std::string& varName, int numBytes);
+
+	void assignToVariable(int offset, ExpressionNodePtr assignExpression);
+	void storeVarialbe(int offset, const std::string& typedVarString);
+
+	void handleExitIfDevidedByZero(const std::string& rhsVar);
+
+	static std::string createStackVariablesGetElementPointer(int index);
+	static std::string createGlobalStringGetElementPointer(const std::string& stringName, int numBytes);
+
+	static std::string createArrayType(int size, int numBits);
 
 #pragma mark Print functions definition helper methods
 

@@ -23,7 +23,7 @@ class VariablesTable
 public:
 	VariablesTable();
 
-	void add(const std::string& id, TType type);
+	VariableEntryPtr add(const std::string& id, TType type);
 
 	VariableEntryPtr find(const std::string& id) const;
 

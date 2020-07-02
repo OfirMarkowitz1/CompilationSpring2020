@@ -11,7 +11,9 @@ void exitWithError();
 
 void setRelopNode();
 
-void setNumericBinopNode();
+void setBinopNode();
+
+void setStringNode();
 
 %}
 
@@ -45,11 +47,11 @@ continue                                                return CONTINUE;
 =                                                       return ASSIGN;
 ==|!=                                                   setRelopNode(); return EQUALITY;
 \<|\>|\<=|\>=                                           setRelopNode(); return RELATIONAL;
-\+|\-                                                   setNumericBinopNode(); return ADDITIVE;
-\*|\/                                                   setNumericBinopNode(); return MULTIPLICATIVE;
+\+|\-                                                   setBinopNode(); return ADDITIVE;
+\*|\/                                                   setBinopNode(); return MULTIPLICATIVE;
 [a-zA-Z][a-zA-Z0-9]*                                    yylval = make_shared<IdentifierNode>(yylineno, yytext); return ID;
 0|[1-9][0-9]*                                           yylval = make_shared<NumNode>(yylineno, atoi(yytext)); return NUM;
-\"([^\n\r\"\\]|\\[rnt"\\])+\"                           yylval = make_shared<StringNode>(yylineno, yytext); return STRING;
+\"([^\n\r\"\\]|\\[rnt"\\])+\"                           setStringNode(); return STRING;
 [ \t\n\r]                                               ;
 \/\/[^\r\n]*[ \r|\n|\r\n]?                              ;
 .                                                       exitWithError();
@@ -64,10 +66,19 @@ void exitWithError()
 
 void setRelopNode()
 {
-	yyval = make_shared<RelopNode>(yylineno, yytext);
+	yylval = make_shared<RelopNode>(yylineno, yytext);
 }
 
-void setNumericBinopNode()
+void setBinopNode()
 {
-	yyval = make_shared<NumericBinopNode>(yylineno, yytext[0]);
+	yylval = make_shared<BinopNode>(yylineno, yytext[0]);
+}
+
+void setStringNode()
+{
+	string str(yytext);
+
+	str = str.substr(1, str.size() - 2);
+
+	yylval = make_shared<StringNode>(yylineno, str);
 }

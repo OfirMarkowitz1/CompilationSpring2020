@@ -202,6 +202,18 @@ MarkerNodePtr NodeCaster::castMarker(NodePtr node) const
 	return markerNode;
 }
 
+BackPatchNodePtr NodeCaster::castBackPatch(NodePtr node) const
+{
+	auto backPatchNode = dynamic_pointer_cast<BackPatchNode>(node);
+
+	if (backPatchNode == nullptr)
+	{
+		exitWithCastError(node->getLineNumber(), "back patch");
+	}
+
+	return backPatchNode;
+}
+
 void NodeCaster::exitWithCastError(int lineNumber, const std::string& expectedTypeStr) const
 {
 	cout << "Expected " << expectedTypeStr << " in line number " << lineNumber << endl;

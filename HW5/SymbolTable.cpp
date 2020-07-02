@@ -7,13 +7,15 @@ VariablesTable::VariablesTable()
 {
 }
 
-void VariablesTable::add(const std::string& id, TType type)
+VariableEntryPtr VariablesTable::add(const std::string& id, TType type)
 {
 	assertScopesStackNotEmpty("add");
 
 	VariableEntryPtr entry = _scopesStack.top()->add(id, type);
 
 	_varIdToEntryMap[id] = entry;
+
+	return entry;
 }
 
 bool VariablesTable::contains(const std::string& id) const

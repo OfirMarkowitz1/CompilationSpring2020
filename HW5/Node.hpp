@@ -58,6 +58,9 @@ typedef std::shared_ptr<RelopNode> RelopNodePtr;
 class MarkerNode;
 typedef std::shared_ptr<MarkerNode> MarkerNodePtr;
 
+class BackPatchNode;
+typedef std::shared_ptr<BackPatchNode> BackPatchNodePtr;
+
 typedef std::pair<int, BranchLabelIndex> BPItem;
 
 #define YYSTYPE NodePtr
@@ -140,6 +143,10 @@ public:
     
 	virtual TType getType() const = 0;
 
+    const std::string& getArgumentString() const;
+
+    void setArgumentString(const std::string& arugmentString);
+
     void assertAssignAllowed(TType type) const;
 
     bool isAssignAllowed(TType type) const;
@@ -147,6 +154,8 @@ public:
 private:
 
 	void exitWithMismatchError() const;
+
+    std::string _argumentString;
 };
 
 class NumericExpressionNode : public ExpressionNode
@@ -306,9 +315,22 @@ public:
     MarkerNode(int lineNumber, const std::string& label);
     virtual ~MarkerNode();
 
-    const std::string& getlabel() const;
+    const std::string& getLabel() const;
 
 private:
 
     const std::string _label;
+};
+
+class BackPatchNode : public Node
+{   
+public:
+    BackPatchNode(int lineNumber, const std::vector<BPItem>& items);
+    virtual ~BackPatchNode();
+
+    const std::vector<BPItem>& getItems() const;
+
+private:
+
+    const std::vector<BPItem> _items;
 };

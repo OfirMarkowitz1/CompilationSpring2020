@@ -21,6 +21,7 @@ public:
 	BinopNodePtr castBinop(NodePtr node) const;
 	RelopNodePtr castRelop(NodePtr node) const;
 	MarkerNodePtr castMarker(NodePtr node) const;
+	BackPatchNodePtr castBackPatch(NodePtr node) const;
 
 private:
 	void exitWithCastError(int lineNumber, const std::string& expectedTypeStr) const;

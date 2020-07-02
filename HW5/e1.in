@@ -1,0 +1,16 @@
+int foo(bool x, int y)
+{
+	if (x and (3 - 1) < 8)
+	{
+		print("Shraga lo");
+	}
+	else
+	{
+		print("AAA");
+	}
+}
+
+void main()
+{
+	int x = foo(false, 5);
+}
