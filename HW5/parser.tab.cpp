@@ -1585,17 +1585,17 @@ yyreduce:
 
   case 27:
 #line 73 "parser.ypp"
-    { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.handleWhileEnded(); ;}
+    { parserReduceHandler.reduceWhileWithoutElse((yyvsp[(1) - (2)])); ;}
     break;
 
   case 28:
 #line 74 "parser.ypp"
-    { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); ;}
+    { parserReduceHandler.handleBetweenWhileAndElse((yyval), (yyvsp[(1) - (3)])); ;}
     break;
 
   case 29:
 #line 74 "parser.ypp"
-    { parserReduceHandler.closeScope(); parserReduceHandler.handleWhileEnded(); ;}
+    { parserReduceHandler.reduceWhileWithElse((yyvsp[(4) - (5)])); ;}
     break;
 
   case 30:
@@ -1730,7 +1730,7 @@ yyreduce:
 
   case 56:
 #line 129 "parser.ypp"
-    { parserReduceHandler.handleWhileBeforeScope((yyvsp[(3) - (5)]), (yyvsp[(4) - (5)])); ;}
+    { parserReduceHandler.handleWhileBeforeScope((yyval), (yyvsp[(3) - (5)]), (yyvsp[(4) - (5)])); ;}
     break;
 
   case 57:

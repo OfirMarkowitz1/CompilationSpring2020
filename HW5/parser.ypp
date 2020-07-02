@@ -70,8 +70,8 @@ Statement	    :	LBRACE { parserReduceHandler.openScope(); } Statements RBRACE { 
                 |	IfBase Statement { parserReduceHandler.reduceIfWithoutElse($1); } %prec COND_WITHOUT_ELSE
 				| 	IfBase Statement ELSE { parserReduceHandler.handleBetweenIfAndElse($$, $1); } Statement { parserReduceHandler.reduceIfWithElse($4);  }
 
-                |	WhileExp Statement { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.handleWhileEnded(); } %prec COND_WITHOUT_ELSE
-            	|	WhileExp Statement ELSE { parserReduceHandler.handleWhileAfterScope(); parserReduceHandler.openScope(); } Statement { parserReduceHandler.closeScope(); parserReduceHandler.handleWhileEnded(); }
+                |	WhileExp Statement { parserReduceHandler.reduceWhileWithoutElse($1); } %prec COND_WITHOUT_ELSE
+            	|	WhileExp Statement ELSE { parserReduceHandler.handleBetweenWhileAndElse($$, $1); } Statement { parserReduceHandler.reduceWhileWithElse($4); }
 
 				|	BREAK SC { parserReduceHandler.reduceBreak(); }
 				|	CONTINUE SC { parserReduceHandler.reduceContinue(); }
@@ -126,7 +126,7 @@ Exp				:	LPAREN Exp RPAREN { parserReduceHandler.reduceInParenthesesExpression($
 IfBase			:	IF LPAREN Exp RPAREN { parserReduceHandler.handleIfBeforeScope($$, $3); };
 				;
 
-WhileExp		:	WHILE LPAREN M Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($3, $4); };
+WhileExp		:	WHILE LPAREN M Exp RPAREN { parserReduceHandler.handleWhileBeforeScope($$, $3, $4); };
 				;
 
 M 				: /* empty */ { parserReduceHandler.reduceMarker($$); }

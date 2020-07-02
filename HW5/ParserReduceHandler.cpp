@@ -221,94 +221,128 @@ void ParserReduceHandler::reduceReturn(NodePtr returnExpression)
 	emitWithIndent("ret " + handleExtractVarFromExpression(expressionNode));
 }
 
-void ParserReduceHandler::handleIfBeforeScope(NodePtr& backPatch, NodePtr expression)
+void ParserReduceHandler::handleIfBeforeScope(NodePtr& ifFalseBackPatch, NodePtr expression)
 {
 	BooleanExpressionNodePtr booleanExpression = _nodeCaster.castBooleanExpression(expression);
 
 	CodeBuffer::instance().bpatch(booleanExpression->getTrueList(), CodeBuffer::instance().genLabel());
 
-	backPatch = make_shared<BackPatchNode>(expression->getLineNumber(), booleanExpression->getFalseList());
+	ifFalseBackPatch = make_shared<BackPatchNode>(expression->getLineNumber(), booleanExpression->getFalseList());
 
 	openScope();
 }
 
-void ParserReduceHandler::reduceIfWithoutElse(NodePtr ifBackPatch)
+void ParserReduceHandler::reduceIfWithoutElse(NodePtr ifFalseBackPatch)
 {
 	closeScope();
 
-	vector<BPItem> backPatchItemsAfterIf = _nodeCaster.castBackPatch(ifBackPatch)->getItems();
+	vector<BPItem> backPatchItemsAfterIf = _nodeCaster.castBackPatch(ifFalseBackPatch)->getItems();
 	
 	backPatchItemsAfterIf.emplace_back(emitUnconditionalBranch(), FIRST);
 		
 	CodeBuffer::instance().bpatch(backPatchItemsAfterIf, CodeBuffer::instance().genLabel());	
 }
 
-void ParserReduceHandler::handleBetweenIfAndElse(NodePtr& elseBackPatch, NodePtr ifBackPatch)
+void ParserReduceHandler::handleBetweenIfAndElse(NodePtr& afterElseBackPatch, NodePtr ifFalseBackPatch)
 {
 	closeScope();
 
-	elseBackPatch = make_shared<BackPatchNode>(yylineno, CodeBuffer::makelist(make_pair(emitUnconditionalBranch(), FIRST)));
+	afterElseBackPatch = make_shared<BackPatchNode>(yylineno, CodeBuffer::makelist(make_pair(emitUnconditionalBranch(), FIRST)));
 
-	BackPatchNodePtr ifBackPatchNode = _nodeCaster.castBackPatch(ifBackPatch);
+	BackPatchNodePtr ifFalseBackPatchNode = _nodeCaster.castBackPatch(ifFalseBackPatch);
 
-	CodeBuffer::instance().bpatch(ifBackPatchNode->getItems(), CodeBuffer::instance().genLabel());
+	CodeBuffer::instance().bpatch(ifFalseBackPatchNode->getItems(), CodeBuffer::instance().genLabel());
 
 	openScope();
 }
 
-void ParserReduceHandler::reduceIfWithElse(NodePtr elseBackPatch)
+void ParserReduceHandler::reduceIfWithElse(NodePtr afterElseBackPatch)
 {
 	closeScope();
 
-	vector<BPItem> backPatchItemsAfterElse = _nodeCaster.castBackPatch(elseBackPatch)->getItems();
+	vector<BPItem> backPatchItemsAfterElse = _nodeCaster.castBackPatch(afterElseBackPatch)->getItems();
 	
 	backPatchItemsAfterElse.emplace_back(emitUnconditionalBranch(), FIRST);
 		
 	CodeBuffer::instance().bpatch(backPatchItemsAfterElse, CodeBuffer::instance().genLabel());	
 }
 
-void ParserReduceHandler::handleWhileBeforeScope(NodePtr marker, NodePtr expression)
+void ParserReduceHandler::handleWhileBeforeScope(NodePtr& whileFalseBackPatch, NodePtr beforeExpressionMarker, NodePtr expression)
 {
 	BooleanExpressionNodePtr booleanExpression = _nodeCaster.castBooleanExpression(expression);
 
-	MarkerNodePtr markerNode = _nodeCaster.castMarker(expression);
+	MarkerNodePtr beforeExpressionMarkerNode = _nodeCaster.castMarker(beforeExpressionMarker);
 
-	_loopConditionLabelStack.push(markerNode->getLabel());
+	_loopConditionLabelStack.push(beforeExpressionMarkerNode->getLabel());
+	
+	_afterLoopAddressListStack.push({});
+
+	CodeBuffer::instance().bpatch(booleanExpression->getTrueList(), CodeBuffer::instance().genLabel());
+
+	whileFalseBackPatch = make_shared<BackPatchNode>(expression->getLineNumber(), booleanExpression->getFalseList());
 
 	openScope();
-
-	const string boolVar = handleGetBoolVarWithValue(booleanExpression);
-
 }
 
-void ParserReduceHandler::handleWhileAfterScope()
+void ParserReduceHandler::reduceWhileWithoutElse(NodePtr whileFalseBackPatch)
 {
+	closeScope();
+
+	vector<BPItem> backPatchItemsAfterWhile = CodeBuffer::merge(_nodeCaster.castBackPatch(whileFalseBackPatch)->getItems(), _afterLoopAddressListStack.top());
+
+	_afterLoopAddressListStack.pop();
+
+	CodeBuffer::instance().bpatch(CodeBuffer::makelist(make_pair(emitUnconditionalBranch(), FIRST)), _loopConditionLabelStack.top());
+		
 	_loopConditionLabelStack.pop();
 
-	closeScope();	
+	CodeBuffer::instance().bpatch(backPatchItemsAfterWhile, CodeBuffer::instance().genLabel());	
 }
 
-void ParserReduceHandler::handleWhileEnded()
+void ParserReduceHandler::handleBetweenWhileAndElse(NodePtr& afterElseBackPatch, NodePtr whileFalseBackPatch)
 {
-	CodeBuffer::instance().bpatch(_loopNextAddressList, CodeBuffer::instance().genLabel());
+	closeScope();
 
-	_loopNextAddressList.clear();
+	afterElseBackPatch = make_shared<BackPatchNode>(yylineno, _afterLoopAddressListStack.top());
+
+	_afterLoopAddressListStack.pop();
+
+	CodeBuffer::instance().bpatch(CodeBuffer::makelist(make_pair(emitUnconditionalBranch(), FIRST)), _loopConditionLabelStack.top());
+		
+	_loopConditionLabelStack.pop();
+
+	BackPatchNodePtr whileFalseBackPatchNode = _nodeCaster.castBackPatch(whileFalseBackPatch);
+
+	CodeBuffer::instance().bpatch(whileFalseBackPatchNode->getItems(), CodeBuffer::instance().genLabel());
+
+	openScope();
+}
+
+void ParserReduceHandler::reduceWhileWithElse(NodePtr afterElseBackPatch)
+{
+	closeScope();
+
+	vector<BPItem> backPatchItemsAfterElse = _nodeCaster.castBackPatch(afterElseBackPatch)->getItems();
+	
+	backPatchItemsAfterElse.emplace_back(emitUnconditionalBranch(), FIRST);
+		
+	CodeBuffer::instance().bpatch(backPatchItemsAfterElse, CodeBuffer::instance().genLabel());	
 }
 
 void ParserReduceHandler::reduceBreak()
 {
-	if (_loopConditionLabelStack.empty())
+	if (_loopConditionLabelStack.empty() || _afterLoopAddressListStack.empty())
 	{
 		output::errorUnexpectedBreak(yylineno);
 		exit(1);
 	}
 
-	_loopNextAddressList.emplace_back(emitUnconditionalBranch(), FIRST);
+	_afterLoopAddressListStack.top().emplace_back(emitUnconditionalBranch(), FIRST);
 }
 
 void ParserReduceHandler::reduceContinue()
 {
-	if (_loopConditionLabelStack.empty())
+	if (_loopConditionLabelStack.empty() || _afterLoopAddressListStack.empty())
 	{
 		output::errorUnexpectedContinue(yylineno);
 		exit(1);
@@ -638,7 +672,13 @@ void ParserReduceHandler::reduceRelopExpression(NodePtr& expression, NodePtr lhs
 
 void ParserReduceHandler::reduceMarker(NodePtr& marker)
 {
-	marker = make_shared<MarkerNode>(yylineno, CodeBuffer::instance().genLabel());
+	const int branchAddress = emitUnconditionalBranch();
+
+	const string markerLabel =  CodeBuffer::instance().genLabel();
+
+	CodeBuffer::instance().bpatch(CodeBuffer::makelist(make_pair(branchAddress, FIRST)), markerLabel);
+
+	marker = make_shared<MarkerNode>(yylineno, markerLabel);
 }
 
 #pragma mark Private helper methods

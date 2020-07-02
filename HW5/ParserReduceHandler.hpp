@@ -32,13 +32,14 @@ public:
 	void reduceAssignedVariableStatement(NodePtr variableId, NodePtr assignExpression);
 	void reduceVoidReturn();
 	void reduceReturn(NodePtr returnExpression);
-	void handleIfBeforeScope(NodePtr& backPatch, NodePtr expression);
-	void reduceIfWithoutElse(NodePtr ifBackPatch);
-	void handleBetweenIfAndElse(NodePtr& elseBackPatch, NodePtr ifBackPatch);
-	void reduceIfWithElse(NodePtr elseBackPatch);
-	void handleWhileBeforeScope(NodePtr marker, NodePtr expression);
-	void handleWhileAfterScope();
-	void handleWhileEnded();
+	void handleIfBeforeScope(NodePtr& ifFalseBackPatch, NodePtr expression);
+	void reduceIfWithoutElse(NodePtr ifFalseBackPatch);
+	void handleBetweenIfAndElse(NodePtr& afterElseBackPatch, NodePtr ifFalseBackPatch);
+	void reduceIfWithElse(NodePtr afterElseBackPatch);
+	void handleWhileBeforeScope(NodePtr& whileFalseBackPatch, NodePtr beforeExpressionMarker, NodePtr expression);
+	void reduceWhileWithoutElse(NodePtr whileFalseBackPatch);
+	void handleBetweenWhileAndElse(NodePtr& afterElseBackPatch, NodePtr whileFalseBackPatch);
+	void reduceWhileWithElse(NodePtr afterElseBackPatch);
 	void reduceBreak();
 	void reduceContinue();
 	void reduceCall(NodePtr& call, NodePtr functionId, NodePtr expressionList);
@@ -106,7 +107,7 @@ private:
 
 	TType _functionScopeRetType = T_VOID;
 	std::stack<std::string> _loopConditionLabelStack;
-	std::vector<BPItem> _loopNextAddressList;
+	std::stack< std::vector<BPItem> > _afterLoopAddressListStack;
 
 #pragma mark Symbol Tables
 
