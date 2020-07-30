@@ -29,6 +29,8 @@ public:
 	void closeFunctionScope();
 	void reduceVariableDeclarationStatement(NodePtr variableType, NodePtr variableId);
 	void reduceAssignedVariableDeclarationStatement(NodePtr variableType, NodePtr variableId, NodePtr assignExpression);
+	void reduceStaticVariableDeclarationStatement(NodePtr variableType, NodePtr variableId);
+	void reduceStaticAssignedVariableDeclarationStatement(NodePtr variableType, NodePtr variableId, NodePtr assignExpression);
 	void reduceAssignedVariableStatement(NodePtr variableId, NodePtr assignExpression);
 	void reduceVoidReturn();
 	void reduceReturn(NodePtr returnExpression);

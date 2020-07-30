@@ -51,25 +51,26 @@
      WHILE = 267,
      BREAK = 268,
      CONTINUE = 269,
-     COMMA = 270,
-     ID = 271,
-     NUM = 272,
-     STRING = 273,
-     LBRACE = 274,
-     RBRACE = 275,
-     LPAREN = 276,
-     RPAREN = 277,
-     SC = 278,
-     COND_WITHOUT_ELSE = 279,
-     ELSE = 280,
-     ASSIGN = 281,
-     OR = 282,
-     AND = 283,
-     EQUALITY = 284,
-     RELATIONAL = 285,
-     ADDITIVE = 286,
-     MULTIPLICATIVE = 287,
-     NOT = 288
+     STATIC = 270,
+     COMMA = 271,
+     ID = 272,
+     NUM = 273,
+     STRING = 274,
+     LBRACE = 275,
+     RBRACE = 276,
+     LPAREN = 277,
+     RPAREN = 278,
+     SC = 279,
+     COND_WITHOUT_ELSE = 280,
+     ELSE = 281,
+     ASSIGN = 282,
+     OR = 283,
+     AND = 284,
+     EQUALITY = 285,
+     RELATIONAL = 286,
+     ADDITIVE = 287,
+     MULTIPLICATIVE = 288,
+     NOT = 289
    };
 #endif
 /* Tokens.  */
@@ -85,25 +86,26 @@
 #define WHILE 267
 #define BREAK 268
 #define CONTINUE 269
-#define COMMA 270
-#define ID 271
-#define NUM 272
-#define STRING 273
-#define LBRACE 274
-#define RBRACE 275
-#define LPAREN 276
-#define RPAREN 277
-#define SC 278
-#define COND_WITHOUT_ELSE 279
-#define ELSE 280
-#define ASSIGN 281
-#define OR 282
-#define AND 283
-#define EQUALITY 284
-#define RELATIONAL 285
-#define ADDITIVE 286
-#define MULTIPLICATIVE 287
-#define NOT 288
+#define STATIC 270
+#define COMMA 271
+#define ID 272
+#define NUM 273
+#define STRING 274
+#define LBRACE 275
+#define RBRACE 276
+#define LPAREN 277
+#define RPAREN 278
+#define SC 279
+#define COND_WITHOUT_ELSE 280
+#define ELSE 281
+#define ASSIGN 282
+#define OR 283
+#define AND 284
+#define EQUALITY 285
+#define RELATIONAL 286
+#define ADDITIVE 287
+#define MULTIPLICATIVE 288
+#define NOT 289
 
 
 

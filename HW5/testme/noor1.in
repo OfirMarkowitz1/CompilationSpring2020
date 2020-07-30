@@ -1,0 +1,46 @@
+int powern( int base, int power){
+	int product = 1;
+	while(power >0){
+		product = product*base;
+		power = power -1;
+	}
+	return product;
+}
+
+bool dum(bool in){
+	print("got here");
+	return in;
+}
+int ifat( int x, bool y, int z, byte c){
+	if ((x < c and z<x) or dum(y)){
+		return 5;
+	}
+	else{
+		return 1;
+	}
+}
+
+void main(){
+	print("check powers");
+	printi(powern(2,6));
+	printi(powern(3,4));
+	printi(powern(7,3));
+	printi(powern(0,2));
+	printi(powern(2,0));
+	print("with true");
+	printi(ifat(1,true, 5, 7b));
+	printi(ifat(5,true, 1, 7b));
+	printi(ifat(1,true, 7, 5b));
+	printi(ifat(7,true, 1, 5b));
+	printi(ifat(7,true, 5, 1b));
+	printi(ifat(5,true, 7, 1b));
+	print("with false");
+	printi(ifat(1,false, 5, 7b));
+	printi(ifat(5,false, 1, 7b));
+	printi(ifat(1,false, 7, 5b));
+	printi(ifat(7,false, 1, 5b));
+	printi(ifat(7,false, 5, 1b));
+	printi(ifat(5,false, 7, 1b));
+	
+
+}

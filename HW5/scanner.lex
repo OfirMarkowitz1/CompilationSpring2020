@@ -38,6 +38,7 @@ else                                                    return ELSE;
 while                                                   return WHILE;
 break                                                   return BREAK;
 continue                                                return CONTINUE;
+static													return STATIC;
 ;                                                       return SC;
 ,                                                       return COMMA;
 \(                                                      return LPAREN;

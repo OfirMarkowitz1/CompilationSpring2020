@@ -10,6 +10,8 @@ extern int yylineno;
 const string PRINT_STRING_SPECIFIER = "str_specifier";
 const string PRINTI_STRING_SPECIFIER = "int_specifier";
 
+const string STATIC_IS_DEFINED_SUFFIX = "_isDefined";
+
 const string DEVISION_BY_ZERO_STRING_VAR = "div_by_zero_error";
 
 const string STACK_POINTER_NAME = "stack_array_ptr";
@@ -186,6 +188,69 @@ void ParserReduceHandler::reduceAssignedVariableDeclarationStatement(NodePtr var
 	assignToVariable(variableEntry->getOffset(), expressionNode);
 }
 
+void ParserReduceHandler::reduceStaticVariableDeclarationStatement(NodePtr variableType, NodePtr variableId)
+{
+	const TType variableTType = _nodeCaster.castType(variableType)->getType();
+	
+	IdentifierNodePtr identifierNode = _nodeCaster.castIdentifier(variableId);
+
+	const string& variableIdString = identifierNode->getValue();
+
+	_symbolTableAsserter.assertIdentifierUndefined(variableIdString, identifierNode->getLineNumber());
+
+	const string staticVarPlace = _freshVariableFactory.createFreshVariable();
+	const string staticVarIsDefinedPlace = staticVarPlace + STATIC_IS_DEFINED_SUFFIX;
+
+	_variablesTable.addStatic(variableIdString, variableTType, staticVarPlace);
+	
+	CodeBuffer::instance().emitGlobal("@_" + staticVarPlace + " = internal global i32 0");
+	CodeBuffer::instance().emitGlobal("@_" + staticVarIsDefinedPlace + " = internal global i32 1");
+}
+
+void ParserReduceHandler::reduceStaticAssignedVariableDeclarationStatement(NodePtr variableType, NodePtr variableId, NodePtr assignExpression)
+{
+	const TType variableTType = _nodeCaster.castType(variableType)->getType();
+	
+	IdentifierNodePtr identifierNode = _nodeCaster.castIdentifier(variableId);
+
+	const string& variableIdString = identifierNode->getValue();
+
+	_symbolTableAsserter.assertIdentifierUndefined(variableIdString, identifierNode->getLineNumber());
+
+	ExpressionNodePtr expressionNode = _nodeCaster.castExpression(assignExpression);
+	expressionNode->assertAssignAllowed(variableTType);
+
+	const string staticVarPlace = _freshVariableFactory.createFreshVariable();
+	const string staticVarIsDefinedPlace = staticVarPlace + STATIC_IS_DEFINED_SUFFIX;
+
+	_variablesTable.addStatic(variableIdString, variableTType, staticVarPlace);
+	
+	const string typedVarString = handleExtractVarFromExpression(expressionNode);
+
+	CodeBuffer::instance().emitGlobal("@_" + staticVarPlace + " = internal global i32 0");
+	CodeBuffer::instance().emitGlobal("@_" + staticVarIsDefinedPlace + " = internal global i32 0");
+
+	const string tempVar = _freshVariableFactory.createFreshVariable();
+
+	emitWithIndent("%" + tempVar + " = load i32, i32* @_" + staticVarIsDefinedPlace);
+
+	const string eqResVar = _freshVariableFactory.createFreshVariable();
+
+	emitWithIndent("%" + eqResVar + " = icmp eq i32 %" + tempVar + ", 0");
+	const int condBranchAddress = emitConditionalBranch(eqResVar);
+
+	CodeBuffer::instance().bpatch(CodeBuffer::makelist(make_pair(condBranchAddress, FIRST)), 
+								  CodeBuffer::instance().genLabel());
+
+	emitWithIndent("store " + typedVarString + ", i32* @_" + staticVarPlace);
+	emitWithIndent("store i32 1, i32* @_" + staticVarIsDefinedPlace);
+
+	const int uncondBranchAddress = emitUnconditionalBranch();;
+
+	CodeBuffer::instance().bpatch({ make_pair(condBranchAddress, SECOND),
+									make_pair(uncondBranchAddress, FIRST) }, CodeBuffer::instance().genLabel());
+}
+
 void ParserReduceHandler::reduceAssignedVariableStatement(NodePtr variableId, NodePtr assignExpression)
 {
 	IdentifierNodePtr identifierNode = _nodeCaster.castIdentifier(variableId);
@@ -194,12 +259,26 @@ void ParserReduceHandler::reduceAssignedVariableStatement(NodePtr variableId, No
 
 	_symbolTableAsserter.assertVariableDefined(variableIdString, identifierNode->getLineNumber());
 
+	ExpressionNodePtr expressionNode = _nodeCaster.castExpression(assignExpression);
+
 	VariableEntryPtr variableEntry = _variablesTable.find(variableIdString);
 
-	ExpressionNodePtr expressionNode = _nodeCaster.castExpression(assignExpression);
-	expressionNode->assertAssignAllowed(variableEntry->getType());
+	if (variableEntry != nullptr)
+	{
+		expressionNode->assertAssignAllowed(variableEntry->getType());
 
-	assignToVariable(variableEntry->getOffset(), expressionNode);
+		assignToVariable(variableEntry->getOffset(), expressionNode);
+
+		return;
+	}
+
+	StaticVariableEntryPtr staticVarEntry = _variablesTable.findStatic(variableIdString);
+
+	expressionNode->assertAssignAllowed(staticVarEntry->getType());
+	
+	const string typedVarString = handleExtractVarFromExpression(expressionNode);
+
+	emitWithIndent("store " + typedVarString + ", i32* @_" + staticVarEntry->getPlace());
 }
 
 void ParserReduceHandler::reduceVoidReturn()
@@ -280,8 +359,8 @@ void ParserReduceHandler::handleWhileBeforeScope(NodePtr& whileFalseBackPatch, N
 	CodeBuffer::instance().bpatch(booleanExpression->getTrueList(), CodeBuffer::instance().genLabel());
 
 	whileFalseBackPatch = make_shared<BackPatchNode>(expression->getLineNumber(), booleanExpression->getFalseList());
-
 	openScope();
+
 }
 
 void ParserReduceHandler::reduceWhileWithoutElse(NodePtr whileFalseBackPatch)
@@ -494,17 +573,29 @@ void ParserReduceHandler::reduceVariableExpression(NodePtr& expression, NodePtr 
 
 	_symbolTableAsserter.assertVariableDefined(variableIdString, lineNumber);
 
-	VariableEntryPtr variableEntry = _variablesTable.find(variableIdString);
-
-	const string tempPtr = _freshVariableFactory.createFreshVariable();
-
-	emitWithIndent("%" + tempPtr + " = " + createStackVariablesGetElementPointer(variableEntry->getOffset()));
-		
 	const string tempVar = _freshVariableFactory.createFreshVariable();
 
-	emitWithIndent("%" + tempVar + " = load i32, i32* %" + tempPtr);
+	TType varType = T_VOID;
 
-	const TType varType = variableEntry->getType();
+	VariableEntryPtr variableEntry = _variablesTable.find(variableIdString);
+
+	if (variableEntry != nullptr)
+	{
+		const string tempPtr = _freshVariableFactory.createFreshVariable();
+
+		emitWithIndent("%" + tempPtr + " = " + createStackVariablesGetElementPointer(variableEntry->getOffset()));
+		emitWithIndent("%" + tempVar + " = load i32, i32* %" + tempPtr);	
+
+		varType = variableEntry->getType();
+	}
+	else
+	{
+		StaticVariableEntryPtr staticVarEntry = _variablesTable.findStatic(variableIdString);
+
+		emitWithIndent("%" + tempVar + " = load i32, i32* @_" + staticVarEntry->getPlace());
+
+		varType = staticVarEntry->getType();
+	}
 
 	switch (varType)
 	{

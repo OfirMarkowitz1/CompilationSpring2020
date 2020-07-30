@@ -12,7 +12,7 @@
     ParserReduceHandler parserReduceHandler;
 %}
 
-%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE COMMA ID NUM STRING LBRACE RBRACE LPAREN RPAREN SC
+%token VOID INT BYTE B BOOL TRUE FALSE RETURN IF WHILE BREAK CONTINUE STATIC COMMA ID NUM STRING LBRACE RBRACE LPAREN RPAREN SC BINOP_ASSIGN
 %nonassoc COND_WITHOUT_ELSE
 %nonassoc ELSE
 %right ASSIGN
@@ -61,8 +61,12 @@ Statement	    :	LBRACE { parserReduceHandler.openScope(); } Statements RBRACE { 
 
 				|	Type ID ASSIGN Exp SC {	parserReduceHandler.reduceAssignedVariableDeclarationStatement($1, $2, $4); }
 
-				|	ID ASSIGN Exp SC { parserReduceHandler.reduceAssignedVariableStatement($1, $3); }
+				|	STATIC Type ID SC { parserReduceHandler.reduceStaticVariableDeclarationStatement($2, $3); }
 
+				|	STATIC Type ID ASSIGN Exp SC { parserReduceHandler.reduceStaticAssignedVariableDeclarationStatement($2, $3, $5); }
+
+				|	ID ASSIGN Exp SC { parserReduceHandler.reduceAssignedVariableStatement($1, $3); }
+				|	ID BINOP_ASSIGN Exp SC {}
 				| 	Call SC
 				|	RETURN SC { parserReduceHandler.reduceVoidReturn(); }
 				|	RETURN Exp SC { parserReduceHandler.reduceReturn($2); }

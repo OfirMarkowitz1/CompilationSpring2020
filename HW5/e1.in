@@ -1,0 +1,48 @@
+int foo(bool pred)
+{
+	if (not pred)
+	{
+		return 0;
+	}
+
+	int i = 0;
+	while (i < 5)
+	{
+		print("Hello");
+		printi(i);
+		i = i + 1;
+	}
+	else
+	{
+		print("End");
+	}
+}
+
+int fun(bool cond)
+{
+	if (cond)
+	{
+		static int count;
+		count = count + 1;
+
+		return count;
+	}
+	else
+	{
+		static int count = 1;
+		count = count + 1;
+
+		return count;
+	}
+}
+
+void main()
+{
+	printi(fun(true));
+	printi(fun(true));
+	printi(fun(true));
+	printi(fun(true));
+	printi(fun(true));
+	printi(fun(false));
+	printi(fun(false));
+}

@@ -1,0 +1,46 @@
+
+
+
+S → every ( E N ) run { S_List } in-reverse ( M B )
+{
+	backpatch(N.nextlist, M.quad);
+
+	backpatch(B.truelist, nextquad());
+
+	step = newtemp();
+	cnt = newtemp();
+
+	n = S_List.quadlist.size();
+
+	emit(step || " = " || E.place);
+	emit(cnt || " = " || n || " - " || step);
+
+	jumpBPList = merge(S_List.nextlist, makelist(nextquad()));
+	emit("goto ___");
+
+	backpatch(B.falselist, nextquad());
+
+	emit(step || " = " || E.place || " * -1");
+	emit(cnt || " = 1 - " || step);
+
+	backpatch(jumpBPList, nextquad());
+
+	emit(cnt || " = " || cnt || " + " || step);
+
+	for (int i = 0; i < n; i++)
+	{
+		emit("if " || cnt || " == " || i || " goto " || S_List.quadlist[i]);
+	}
+}
+
+S_List → M S S_List1
+{
+	S_List.nextlist = merge(S_List1.nextlist, S.nextlist);
+	S_List.quadlist = merge(S_List1.quadlist, makelist(M.quad));
+}
+
+S_List → M S
+{
+	S_List.nextlist = S.nextlist;
+	S_List.quadlist = makelist(M.quad);
+}

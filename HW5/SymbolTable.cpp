@@ -18,9 +18,19 @@ VariableEntryPtr VariablesTable::add(const std::string& id, TType type)
 	return entry;
 }
 
+void VariablesTable::addStatic(const std::string& id, TType type, const std::string& place)
+{
+	assertScopesStackNotEmpty("add static");
+
+	StaticVariableEntryPtr entry = _scopesStack.top()->addStatic(id, type, place);
+
+	_staticVarIdToEntryMap[id] = entry;
+}
+
 bool VariablesTable::contains(const std::string& id) const
 {
-	return (_varIdToEntryMap.find(id) != _varIdToEntryMap.end());
+	return ((_varIdToEntryMap.find(id) != _varIdToEntryMap.end()) ||
+			(_staticVarIdToEntryMap.find(id) != _staticVarIdToEntryMap.end()));
 }
 
 VariableEntryPtr VariablesTable::find(const std::string& id) const
@@ -28,6 +38,13 @@ VariableEntryPtr VariablesTable::find(const std::string& id) const
 	auto varIdToEntryMapIter = _varIdToEntryMap.find(id);
 
 	return (varIdToEntryMapIter != _varIdToEntryMap.end() ? varIdToEntryMapIter->second : nullptr);
+}
+
+StaticVariableEntryPtr VariablesTable::findStatic(const std::string& id) const
+{
+	auto staticVarIdToEntryMapIter = _staticVarIdToEntryMap.find(id);
+
+	return (staticVarIdToEntryMapIter != _staticVarIdToEntryMap.end() ? staticVarIdToEntryMapIter->second : nullptr);
 }
 
 void VariablesTable::pushRegularScope()
@@ -59,6 +76,11 @@ void VariablesTable::popScope()
 	{
 		_varIdToEntryMap.erase(entry->getId());
 	}
+
+	for (StaticVariableEntryPtr entry : lastScope->getStaticEntries())
+	{
+		_staticVarIdToEntryMap.erase(entry->getId());
+	}
 }
 
 void VariablesTable::assertScopesStackNotEmpty(const std::string& actionDescription) const
@@ -84,6 +106,15 @@ VariableEntryPtr VariablesScope::add(const std::string& id, TType type)
 	return entry;
 }
 
+StaticVariableEntryPtr VariablesScope::addStatic(const std::string& id, TType type, const std::string& place)
+{
+	auto entry = make_shared<StaticVariableEntry>(id, type, place);
+
+	_staticEntries.push_back(entry);
+
+	return entry;
+}
+
 int VariablesScope::getCurrentOffset() const
 {
 	return _startingOffset + _entries.size();
@@ -92,6 +123,11 @@ int VariablesScope::getCurrentOffset() const
 const std::vector<VariableEntryPtr>& VariablesScope::getEntries() const
 {
 	return _entries;
+}
+
+const std::vector<StaticVariableEntryPtr> VariablesScope::getStaticEntries() const
+{
+	return _staticEntries;
 }
 
 void VariablesScope::assertFunctionScopeHasEnoughEntries() const
@@ -153,6 +189,23 @@ TType VariableEntry::getType() const
 int VariableEntry::getOffset() const
 {
 	return _offset;
+}
+
+StaticVariableEntry::StaticVariableEntry(const std::string& id, TType varType, const std::string& place) :
+SymbolEntry(id),
+_varType(varType),
+_place(place)
+{
+}
+
+TType StaticVariableEntry::getType() const
+{
+	return _varType;
+}
+
+const std::string& StaticVariableEntry::getPlace() const
+{
+	return _place;
 }
 
 FunctionEntry::FunctionEntry(const std::string& id, TType retType, const std::vector<TType>& argTypes) :
